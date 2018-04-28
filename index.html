@@ -264,6 +264,259 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yjxxclub.cn/2018/04/28/Centos7安装python3和pip3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="阿星">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="阿星的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/04/28/Centos7安装python3和pip3/" itemprop="url">Centos7安装python3和pip3.md</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-28T12:36:43+08:00">
+                2018-04-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p> 为甚么安装python3和pip3，因为20年py2就不跟新了，所以提前跑路升级python3，并汇总了我的安装过程，希望能给大家一点帮助。</p>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><h3 id="依赖"><a href="#依赖" class="headerlink" title="依赖"></a>依赖</h3><figure class="highlight clean"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 防止ImportError: cannot <span class="keyword">import</span> name <span class="string">'HTTPSHandler'</span></span><br><span class="line">sudo yum install openssl-devel -y </span><br><span class="line"># 防止ImportError: cannot <span class="keyword">import</span> name <span class="string">'zlib'</span></span><br><span class="line">sudo yum install zlib-devel -y</span><br></pre></td></tr></table></figure>
+<h3 id="Python3安装"><a href="#Python3安装" class="headerlink" title="Python3安装"></a>Python3安装</h3><figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">wget --<span class="keyword">no</span>-check-certificate http<span class="variable">s:</span>//www.<span class="keyword">python</span>.org/ftp/<span class="keyword">python</span>/<span class="number">3.6</span>.<span class="number">0</span>/Python-<span class="number">3.6</span>.<span class="number">0</span>.tgz</span><br><span class="line"></span><br><span class="line">tar -xzvf Python-<span class="number">3.6</span>.<span class="number">0</span>.tgz </span><br><span class="line"></span><br><span class="line"><span class="keyword">cd</span> Python-<span class="number">3.6</span>.<span class="number">0</span></span><br><span class="line"></span><br><span class="line">sudo ./configure --prefix=/usr/local/<span class="keyword">python3</span>/ --with-zlib=/usr/include --enable-loadable-sqlite-extensions</span><br><span class="line"></span><br><span class="line">sudo <span class="keyword">make</span> &amp;&amp; <span class="keyword">make</span> install</span><br><span class="line">sudo <span class="keyword">ln</span> -s /usr/local/<span class="keyword">python3</span>/bin/<span class="keyword">python3</span> /usr/local/bin/<span class="keyword">python3</span></span><br></pre></td></tr></table></figure>
+<h3 id="setuptools安装"><a href="#setuptools安装" class="headerlink" title="setuptools安装"></a>setuptools安装</h3><figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">wget --<span class="keyword">no</span>-check-certificate http<span class="variable">s:</span>//pypi.<span class="keyword">python</span>.org/packages/<span class="keyword">source</span>/s/setuptools/setuptools-<span class="number">19.6</span>.tar.gz#md5=c607dd118eae682c44ed146367a17e26 </span><br><span class="line"></span><br><span class="line">tar -zxvf setuptools-<span class="number">19.6</span>.tar.gz </span><br><span class="line"><span class="keyword">cd</span> setuptools-<span class="number">19.6</span></span><br><span class="line">sudo <span class="keyword">python3</span> setup.<span class="keyword">py</span> build </span><br><span class="line">sudo <span class="keyword">python3</span> setup.<span class="keyword">py</span> install</span><br></pre></td></tr></table></figure>
+<h3 id="pip3安装"><a href="#pip3安装" class="headerlink" title="pip3安装"></a>pip3安装</h3><figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">wget --<span class="keyword">no</span>-check-certificate http<span class="variable">s:</span>//pypi.<span class="keyword">python</span>.org/packages/<span class="keyword">source</span>/<span class="keyword">p</span>/pip/pip-<span class="number">8.0</span>.<span class="number">2</span>.tar.gz#md5=<span class="number">3</span>a73c4188f8dbad6a1e6f6d44d117eeb </span><br><span class="line"></span><br><span class="line">tar -zxvf pip-<span class="number">8.0</span>.<span class="number">2</span>.tar.gz </span><br><span class="line"><span class="keyword">cd</span> pip-<span class="number">8.0</span>.<span class="number">2</span> </span><br><span class="line">sudo <span class="keyword">python3</span> setup.<span class="keyword">py</span> build </span><br><span class="line">sudo <span class="keyword">python3</span> setup.<span class="keyword">py</span> install</span><br><span class="line">sudo <span class="keyword">ln</span> -s /usr/local/<span class="keyword">python3</span>.<span class="number">4</span>/bin/pip3 /usr/bin/pip3</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>建议把<code>pip</code>和<code>python</code>分别指向<code>pip3</code>和<code>python3</code>！</p>
+</blockquote>
+<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>无</p>
+<h2 id="参考书籍："><a href="#参考书籍：" class="headerlink" title="参考书籍："></a>参考书籍：</h2><ol>
+<li><a href="https://blog.csdn.net/jql1994/article/details/53096593" target="_blank" rel="noopener">https://blog.csdn.net/jql1994/article/details/53096593</a></li>
+<li><a href="https://blog.csdn.net/zuolovefu/article/details/78142612" target="_blank" rel="noopener">https://blog.csdn.net/zuolovefu/article/details/78142612</a></li>
+<li><a href="http://www.cnblogs.com/wenchengxiaopenyou/p/5709218.html" target="_blank" rel="noopener">http://www.cnblogs.com/wenchengxiaopenyou/p/5709218.html</a></li>
+</ol>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yjxxclub.cn/2018/04/28/优雅的实现 JDBC PreparedStatement IN语句/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="阿星">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="阿星的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/04/28/优雅的实现 JDBC PreparedStatement IN语句/" itemprop="url">的实现 JDBC PreparedStatement IN语句.md</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-28T12:36:43+08:00">
+                2018-04-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>如果您使用JDBC API在数据库上运行查询，则应该知道PreparedStatement是比Statement更好的选择。 但是，由于JDBC API只允许一个“？”参数的一个字面值，因此PreparedStatement不适用于IN子句查询。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yjxxclub.cn/2018/04/20/构建你的第一个Django应用/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1286,7 +1539,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">7</span>
+                <span class="site-state-item-count">9</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -1299,7 +1552,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-count">3</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
