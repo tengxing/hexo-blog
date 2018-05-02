@@ -78,7 +78,7 @@
 <link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="python pip centos," />
+  <meta name="keywords" content="Docker Tomcat," />
 
 
 
@@ -94,18 +94,18 @@
 
 
 
-<meta name="description" content="前言 为甚么安装python3和pip3，因为20年py2就不跟新了，所以提前跑路升级python3，并汇总了我的安装过程，希望能给大家一点帮助。 安装依赖1234# 防止ImportError: cannot import name &apos;HTTPSHandler&apos;sudo yum install openssl-devel -y # 防止ImportError: cannot import nam">
-<meta name="keywords" content="python pip centos">
+<meta name="description" content="前言使用docker部署一个应用tomcat，安装见基于Ubuntu安装docker 安装tomcat安装镜像搜索tomcat镜像文件信息： 123456ubuntu@VM-173-130-ubuntu:~$ sudo docker search tomcatNAME         DESCRIPTION                                     STARS">
+<meta name="keywords" content="Docker Tomcat">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Centos7安装python3和pip3.md">
-<meta property="og:url" content="http://yjxxclub.cn/2018/04/28/Centos7安装python3和pip3/index.html">
+<meta property="og:title" content="Docker安装Tomcat部署应用.md">
+<meta property="og:url" content="http://yjxxclub.cn/2018/05/02/Docker安装Tomcat部署应用/index.html">
 <meta property="og:site_name" content="阿星的博客">
-<meta property="og:description" content="前言 为甚么安装python3和pip3，因为20年py2就不跟新了，所以提前跑路升级python3，并汇总了我的安装过程，希望能给大家一点帮助。 安装依赖1234# 防止ImportError: cannot import name &apos;HTTPSHandler&apos;sudo yum install openssl-devel -y # 防止ImportError: cannot import nam">
+<meta property="og:description" content="前言使用docker部署一个应用tomcat，安装见基于Ubuntu安装docker 安装tomcat安装镜像搜索tomcat镜像文件信息： 123456ubuntu@VM-173-130-ubuntu:~$ sudo docker search tomcatNAME         DESCRIPTION                                     STARS">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-04-28T06:13:14.291Z">
+<meta property="og:updated_time" content="2018-05-02T12:48:58.987Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Centos7安装python3和pip3.md">
-<meta name="twitter:description" content="前言 为甚么安装python3和pip3，因为20年py2就不跟新了，所以提前跑路升级python3，并汇总了我的安装过程，希望能给大家一点帮助。 安装依赖1234# 防止ImportError: cannot import name &apos;HTTPSHandler&apos;sudo yum install openssl-devel -y # 防止ImportError: cannot import nam">
+<meta name="twitter:title" content="Docker安装Tomcat部署应用.md">
+<meta name="twitter:description" content="前言使用docker部署一个应用tomcat，安装见基于Ubuntu安装docker 安装tomcat安装镜像搜索tomcat镜像文件信息： 123456ubuntu@VM-173-130-ubuntu:~$ sudo docker search tomcatNAME         DESCRIPTION                                     STARS">
 
 
 
@@ -134,13 +134,13 @@
 
 
 
-  <link rel="canonical" href="http://yjxxclub.cn/2018/04/28/Centos7安装python3和pip3/"/>
+  <link rel="canonical" href="http://yjxxclub.cn/2018/05/02/Docker安装Tomcat部署应用/"/>
 
 
 
 
 
-  <title>Centos7安装python3和pip3.md | 阿星的博客</title>
+  <title>Docker安装Tomcat部署应用.md | 阿星的博客</title>
   
 
 
@@ -263,7 +263,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yjxxclub.cn/2018/04/28/Centos7安装python3和pip3/">
+    <link itemprop="mainEntityOfPage" href="http://yjxxclub.cn/2018/05/02/Docker安装Tomcat部署应用/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="阿星">
@@ -280,7 +280,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">Centos7安装python3和pip3.md</h1>
+          <h1 class="post-title" itemprop="name headline">Docker安装Tomcat部署应用.md</h1>
         
 
         <div class="post-meta">
@@ -292,8 +292,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-28T12:36:43+08:00">
-                2018-04-28
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-02T11:36:43+08:00">
+                2018-05-02
               </time>
             
 
@@ -330,20 +330,38 @@
       
 
       
-        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p> 为甚么安装python3和pip3，因为20年py2就不跟新了，所以提前跑路升级python3，并汇总了我的安装过程，希望能给大家一点帮助。</p>
-<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><h3 id="依赖"><a href="#依赖" class="headerlink" title="依赖"></a>依赖</h3><figure class="highlight clean"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 防止ImportError: cannot <span class="keyword">import</span> name <span class="string">'HTTPSHandler'</span></span><br><span class="line">sudo yum install openssl-devel -y </span><br><span class="line"># 防止ImportError: cannot <span class="keyword">import</span> name <span class="string">'zlib'</span></span><br><span class="line">sudo yum install zlib-devel -y</span><br></pre></td></tr></table></figure>
-<h3 id="Python3安装"><a href="#Python3安装" class="headerlink" title="Python3安装"></a>Python3安装</h3><figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">wget --<span class="keyword">no</span>-check-certificate http<span class="variable">s:</span>//www.<span class="keyword">python</span>.org/ftp/<span class="keyword">python</span>/<span class="number">3.6</span>.<span class="number">0</span>/Python-<span class="number">3.6</span>.<span class="number">0</span>.tgz</span><br><span class="line"></span><br><span class="line">tar -xzvf Python-<span class="number">3.6</span>.<span class="number">0</span>.tgz </span><br><span class="line"></span><br><span class="line"><span class="keyword">cd</span> Python-<span class="number">3.6</span>.<span class="number">0</span></span><br><span class="line"></span><br><span class="line">sudo ./configure --prefix=/usr/local/<span class="keyword">python3</span>/ --with-zlib=/usr/include --enable-loadable-sqlite-extensions</span><br><span class="line"></span><br><span class="line">sudo <span class="keyword">make</span> &amp;&amp; <span class="keyword">make</span> install</span><br><span class="line">sudo <span class="keyword">ln</span> -s /usr/local/<span class="keyword">python3</span>/bin/<span class="keyword">python3</span> /usr/local/bin/<span class="keyword">python3</span></span><br></pre></td></tr></table></figure>
-<h3 id="setuptools安装"><a href="#setuptools安装" class="headerlink" title="setuptools安装"></a>setuptools安装</h3><figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">wget --<span class="keyword">no</span>-check-certificate http<span class="variable">s:</span>//pypi.<span class="keyword">python</span>.org/packages/<span class="keyword">source</span>/s/setuptools/setuptools-<span class="number">19.6</span>.tar.gz#md5=c607dd118eae682c44ed146367a17e26 </span><br><span class="line"></span><br><span class="line">tar -zxvf setuptools-<span class="number">19.6</span>.tar.gz </span><br><span class="line"><span class="keyword">cd</span> setuptools-<span class="number">19.6</span></span><br><span class="line">sudo <span class="keyword">python3</span> setup.<span class="keyword">py</span> build </span><br><span class="line">sudo <span class="keyword">python3</span> setup.<span class="keyword">py</span> install</span><br></pre></td></tr></table></figure>
-<h3 id="pip3安装"><a href="#pip3安装" class="headerlink" title="pip3安装"></a>pip3安装</h3><figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">wget --<span class="keyword">no</span>-check-certificate http<span class="variable">s:</span>//pypi.<span class="keyword">python</span>.org/packages/<span class="keyword">source</span>/<span class="keyword">p</span>/pip/pip-<span class="number">8.0</span>.<span class="number">2</span>.tar.gz#md5=<span class="number">3</span>a73c4188f8dbad6a1e6f6d44d117eeb </span><br><span class="line"></span><br><span class="line">tar -zxvf pip-<span class="number">8.0</span>.<span class="number">2</span>.tar.gz </span><br><span class="line"><span class="keyword">cd</span> pip-<span class="number">8.0</span>.<span class="number">2</span> </span><br><span class="line">sudo <span class="keyword">python3</span> setup.<span class="keyword">py</span> build </span><br><span class="line">sudo <span class="keyword">python3</span> setup.<span class="keyword">py</span> install</span><br><span class="line">sudo <span class="keyword">ln</span> -s /usr/local/<span class="keyword">python3</span>.<span class="number">4</span>/bin/pip3 /usr/bin/pip3</span><br></pre></td></tr></table></figure>
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>使用docker部署一个应用tomcat，安装见<a href="/2018/05/03/基于Ubuntu16.04安装Docker/">基于Ubuntu安装docker</a></p>
+<h2 id="安装tomcat"><a href="#安装tomcat" class="headerlink" title="安装tomcat"></a>安装tomcat</h2><h3 id="安装镜像"><a href="#安装镜像" class="headerlink" title="安装镜像"></a>安装镜像</h3><p>搜索tomcat镜像文件信息：</p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">ubuntu@VM-<span class="number">173</span>-<span class="number">130</span>-ubuntu:~$ sudo docker <span class="built_in">search</span> tomcat</span><br><span class="line">NAME         DESCRIPTION                                     STARS     OFFICIAL   AUTOMATED</span><br><span class="line">tomcat       Apache Tomcat <span class="keyword">is</span> <span class="keyword">an</span> <span class="keyword">open</span> <span class="keyword">source</span> implementa...   <span class="number">1820</span>      [OK]       </span><br><span class="line">tomee        Apache TomEE <span class="keyword">is</span> <span class="keyword">an</span> <span class="keyword">all</span>-Apache Java EE cert...   <span class="number">50</span>        [OK]       </span><br><span class="line">dordoka/tomcat  Ubuntu <span class="number">14.04</span>, Oracle JDK <span class="number">8</span> <span class="built_in">and</span> Tomcat <span class="number">8</span> <span class="keyword">ba</span>...   <span class="number">48</span>     [OK]</span><br><span class="line">davidcaste/  Apache Tomcat <span class="number">7</span>/<span class="number">8</span> using Oracle Java <span class="number">7</span>/<span class="number">8</span> <span class="keyword">wi</span>...  <span class="number">24</span>         [OK]</span><br></pre></td></tr></table></figure>
+<p>下载想要的版本，默认拉取最新的<br><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">docker</span> <span class="selector-tag">pull</span> <span class="selector-tag">tomcat</span><span class="selector-pseudo">:8</span></span><br></pre></td></tr></table></figure></p>
+<p>启动</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">docker</span> <span class="selector-tag">run</span> <span class="selector-tag">-p</span> 8080<span class="selector-pseudo">:8080</span> <span class="selector-tag">-d</span> <span class="selector-tag">tomcat</span><span class="selector-pseudo">:8</span>   <span class="selector-id">#p</span>表示端口映射 <span class="selector-tag">d</span>表示后台挂</span><br></pre></td></tr></table></figure>
+<p>在浏览器里输入<code>http://ip:8080</code>验证tomcat是否启动成功</p>
+<h2 id="部署应用"><a href="#部署应用" class="headerlink" title="部署应用"></a>部署应用</h2><p>部署应用和平时部署一样，都要把war包放在webapps目录下面。有两种方式</p>
+<ul>
+<li>挂载目录</li>
+<li>拷贝到webapps</li>
+</ul>
+<h3 id="挂载目录"><a href="#挂载目录" class="headerlink" title="挂载目录"></a>挂载目录</h3><figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo docker run --privileged=<span class="literal">true</span> -v <span class="regexp">/home/</span>ubuntu<span class="regexp">/apple/</span><span class="string">webapps:</span><span class="regexp">/usr/</span>local<span class="regexp">/tomcat/</span>webapps -p <span class="number">8080</span>:<span class="number">8080</span> -d --name tomcat <span class="string">tomcat:</span><span class="number">8</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>–privileged=true 授予docker挂载的权限 </li>
+<li>/home/ubuntu/apple/webapps宿主主机目录 </li>
+<li>/usr/local/tomcat/webapps docker容器tomcat目录 </li>
+<li>-p 端口映射 </li>
+<li>-d 后台挂起 </li>
+<li>–name 容器名称</li>
+</ul>
 <blockquote>
-<p>建议把<code>pip</code>和<code>python</code>分别指向<code>pip3</code>和<code>python3</code>！</p>
+<p>如果报错:已经有应用了，无法启动。docker rm tomcat</p>
+</blockquote>
+<h3 id="拷贝到webapps"><a href="#拷贝到webapps" class="headerlink" title="拷贝到webapps"></a>拷贝到webapps</h3><figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker cp demo.war <span class="string">tomcat:</span><span class="regexp">/usr/</span>local<span class="regexp">/tomcat/</span>webapps</span><br></pre></td></tr></table></figure>
+<ul>
+<li>tomcat 启动时指定的容器名</li>
+</ul>
+<blockquote>
+<p>进入tomcat docker exec -it tomcat /bin/bash</p>
 </blockquote>
 <h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>无</p>
-<h2 id="参考书籍："><a href="#参考书籍：" class="headerlink" title="参考书籍："></a>参考书籍：</h2><ol>
-<li><a href="https://blog.csdn.net/jql1994/article/details/53096593" target="_blank" rel="noopener">https://blog.csdn.net/jql1994/article/details/53096593</a></li>
-<li><a href="https://blog.csdn.net/zuolovefu/article/details/78142612" target="_blank" rel="noopener">https://blog.csdn.net/zuolovefu/article/details/78142612</a></li>
-<li><a href="http://www.cnblogs.com/wenchengxiaopenyou/p/5709218.html" target="_blank" rel="noopener">http://www.cnblogs.com/wenchengxiaopenyou/p/5709218.html</a></li>
-</ol>
 
       
     </div>
@@ -361,7 +379,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/python-pip-centos/" rel="tag"># python pip centos</a>
+            <a href="/tags/Docker-Tomcat/" rel="tag"># Docker Tomcat</a>
           
         </div>
       
@@ -374,8 +392,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/04/28/优雅的实现 JDBC PreparedStatement IN语句/" rel="next" title="优雅的实现 JDBC PreparedStatement IN语句.md">
-                <i class="fa fa-chevron-left"></i> 优雅的实现 JDBC PreparedStatement IN语句.md
+              <a href="/2018/05/02/如何进入正在执行的Docker container/" rel="next" title="如何进入正在执行的Docker container.md">
+                <i class="fa fa-chevron-left"></i> 如何进入正在执行的Docker container.md
               </a>
             
           </div>
@@ -384,8 +402,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2018/04/29/JDBC批处理性能测试/" rel="prev" title="JDBC批处理性能测试.md">
-                JDBC批处理性能测试.md <i class="fa fa-chevron-right"></i>
+              <a href="/2018/05/03/基于Ubuntu16.04安装Docker/" rel="prev" title="基于Ubuntu16.04安装Docker.md">
+                基于Ubuntu16.04安装Docker.md <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -511,7 +529,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装"><span class="nav-number">2.</span> <span class="nav-text">安装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#依赖"><span class="nav-number">2.1.</span> <span class="nav-text">依赖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Python3安装"><span class="nav-number">2.2.</span> <span class="nav-text">Python3安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#setuptools安装"><span class="nav-number">2.3.</span> <span class="nav-text">setuptools安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pip3安装"><span class="nav-number">2.4.</span> <span class="nav-text">pip3安装</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#后记"><span class="nav-number">3.</span> <span class="nav-text">后记</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考书籍："><span class="nav-number">4.</span> <span class="nav-text">参考书籍：</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装tomcat"><span class="nav-number">2.</span> <span class="nav-text">安装tomcat</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#安装镜像"><span class="nav-number">2.1.</span> <span class="nav-text">安装镜像</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#部署应用"><span class="nav-number">3.</span> <span class="nav-text">部署应用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#挂载目录"><span class="nav-number">3.1.</span> <span class="nav-text">挂载目录</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#拷贝到webapps"><span class="nav-number">3.2.</span> <span class="nav-text">拷贝到webapps</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#后记"><span class="nav-number">4.</span> <span class="nav-text">后记</span></a></li></ol></div>
             
 
           </div>
