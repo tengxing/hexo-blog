@@ -264,6 +264,139 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yjxxclub.cn/2018/04/28/Centos7安装python3和pip3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="阿星">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="阿星的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/04/28/Centos7安装python3和pip3/" itemprop="url">Centos7安装python3和pip3.md</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-28T12:36:43+08:00">
+                2018-04-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p> 为甚么安装python3和pip3，因为20年py2就不跟新了，所以提前跑路升级python3，并汇总了我的安装过程，希望能给大家一点帮助。</p>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><h3 id="依赖"><a href="#依赖" class="headerlink" title="依赖"></a>依赖</h3><figure class="highlight clean"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 防止ImportError: cannot <span class="keyword">import</span> name <span class="string">'HTTPSHandler'</span></span><br><span class="line">sudo yum install openssl-devel -y </span><br><span class="line"># 防止ImportError: cannot <span class="keyword">import</span> name <span class="string">'zlib'</span></span><br><span class="line">sudo yum install zlib-devel -y</span><br></pre></td></tr></table></figure>
+<h3 id="Python3安装"><a href="#Python3安装" class="headerlink" title="Python3安装"></a>Python3安装</h3><figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">wget --<span class="keyword">no</span>-check-certificate http<span class="variable">s:</span>//www.<span class="keyword">python</span>.org/ftp/<span class="keyword">python</span>/<span class="number">3.6</span>.<span class="number">0</span>/Python-<span class="number">3.6</span>.<span class="number">0</span>.tgz</span><br><span class="line"></span><br><span class="line">tar -xzvf Python-<span class="number">3.6</span>.<span class="number">0</span>.tgz </span><br><span class="line"></span><br><span class="line"><span class="keyword">cd</span> Python-<span class="number">3.6</span>.<span class="number">0</span></span><br><span class="line"></span><br><span class="line">sudo ./configure --prefix=/usr/local/<span class="keyword">python3</span>/ --with-zlib=/usr/include --enable-loadable-sqlite-extensions</span><br><span class="line"></span><br><span class="line">sudo <span class="keyword">make</span> &amp;&amp; <span class="keyword">make</span> install</span><br><span class="line">sudo <span class="keyword">ln</span> -s /usr/local/<span class="keyword">python3</span>/bin/<span class="keyword">python3</span> /usr/local/bin/<span class="keyword">python3</span></span><br></pre></td></tr></table></figure>
+<h3 id="setuptools安装"><a href="#setuptools安装" class="headerlink" title="setuptools安装"></a>setuptools安装</h3><figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">wget --<span class="keyword">no</span>-check-certificate http<span class="variable">s:</span>//pypi.<span class="keyword">python</span>.org/packages/<span class="keyword">source</span>/s/setuptools/setuptools-<span class="number">19.6</span>.tar.gz#md5=c607dd118eae682c44ed146367a17e26 </span><br><span class="line"></span><br><span class="line">tar -zxvf setuptools-<span class="number">19.6</span>.tar.gz </span><br><span class="line"><span class="keyword">cd</span> setuptools-<span class="number">19.6</span></span><br><span class="line">sudo <span class="keyword">python3</span> setup.<span class="keyword">py</span> build </span><br><span class="line">sudo <span class="keyword">python3</span> setup.<span class="keyword">py</span> install</span><br></pre></td></tr></table></figure>
+<h3 id="pip3安装"><a href="#pip3安装" class="headerlink" title="pip3安装"></a>pip3安装</h3><figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">wget --<span class="keyword">no</span>-check-certificate http<span class="variable">s:</span>//pypi.<span class="keyword">python</span>.org/packages/<span class="keyword">source</span>/<span class="keyword">p</span>/pip/pip-<span class="number">8.0</span>.<span class="number">2</span>.tar.gz#md5=<span class="number">3</span>a73c4188f8dbad6a1e6f6d44d117eeb </span><br><span class="line"></span><br><span class="line">tar -zxvf pip-<span class="number">8.0</span>.<span class="number">2</span>.tar.gz </span><br><span class="line"><span class="keyword">cd</span> pip-<span class="number">8.0</span>.<span class="number">2</span> </span><br><span class="line">sudo <span class="keyword">python3</span> setup.<span class="keyword">py</span> build </span><br><span class="line">sudo <span class="keyword">python3</span> setup.<span class="keyword">py</span> install</span><br><span class="line">sudo <span class="keyword">ln</span> -s /usr/local/<span class="keyword">python3</span>.<span class="number">4</span>/bin/pip3 /usr/bin/pip3</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>建议把<code>pip</code>和<code>python</code>分别指向<code>pip3</code>和<code>python3</code>！</p>
+</blockquote>
+<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>无</p>
+<h2 id="参考书籍："><a href="#参考书籍：" class="headerlink" title="参考书籍："></a>参考书籍：</h2><ol>
+<li><a href="https://blog.csdn.net/jql1994/article/details/53096593" target="_blank" rel="noopener">https://blog.csdn.net/jql1994/article/details/53096593</a></li>
+<li><a href="https://blog.csdn.net/zuolovefu/article/details/78142612" target="_blank" rel="noopener">https://blog.csdn.net/zuolovefu/article/details/78142612</a></li>
+<li><a href="http://www.cnblogs.com/wenchengxiaopenyou/p/5709218.html" target="_blank" rel="noopener">http://www.cnblogs.com/wenchengxiaopenyou/p/5709218.html</a></li>
+</ol>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yjxxclub.cn/2018/04/28/优雅的实现 JDBC PreparedStatement IN语句/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -854,132 +987,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yjxxclub.cn/2018/04/15/hexo引用图片-md/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="阿星">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="阿星的博客">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/04/15/hexo引用图片-md/" itemprop="url">hexo引用图片.md</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-15T12:36:43+08:00">
-                2018-04-15
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>在写文章时，常常有配图说明的需求。Hexo有多种图片插入方式，可以将图片存放在本地引用或者将图片放在CDN上引用。<br>本地引用</p>
-<h2 id="绝对路径"><a href="#绝对路径" class="headerlink" title="绝对路径"></a>绝对路径</h2><p>当Hexo项目中只用到少量图片时，可以将图片统一放在source/images文件夹中，通过markdown语法访问它们。<br>source/images/image.jpg<br><figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">!<span class="selector-attr">[]</span>(/images/image.jpg)</span><br></pre></td></tr></table></figure></p>
-<p>图片既可以在首页内容中访问到，也可以在文章正文中访问到。</p>
-<h2 id="相对路径"><a href="#相对路径" class="headerlink" title="相对路径"></a>相对路径</h2><p>图片除了可以放在统一的images文件夹中，还可以放在文章自己的目录中。文章的目录可以通过配置<code>_config.yml</code>来生成。<br>_config.yml<br><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">post_asset_folder:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure></p>
-<p>将<code>_config.yml</code>文件中的配置项<code>post_asset_folder</code>设为true后，执行命令$ hexo new post_name，在source/_posts中会生成文章post_name.md和同名文件夹<code>post_name</code>。将图片资源放在post_name中，文章就可以使用相对路径引用图片资源了。<br><figure class="highlight sqf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">![](<span class="built_in">image</span>.jpg)　＃<span class="variable">_posts</span>/post_name/<span class="built_in">image</span>.jpg</span><br></pre></td></tr></table></figure></p>
-<p>上述是markdown的引用方式，图片只能在文章中显示，但无法在首页中正常显示。<br>如果希望图片在文章和首页中同时显示，可以使用标签插件语法。<br>_posts/post_name/image.jpg<br><figure class="highlight maxima"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;<span class="symbol">%</span> asset_img <span class="built_in">image</span>.jpg This <span class="built_in">is</span> an <span class="built_in">image</span> <span class="symbol">%</span>&#125;</span><br></pre></td></tr></table></figure></p>
-<h2 id="CDN引用"><a href="#CDN引用" class="headerlink" title="CDN引用"></a>CDN引用</h2><p>除了在本地存储图片，还可以将图片上传到一些免费的｀CDN｀服务中。比如Cloudinary提供的图片CDN服务，在Cloudinary中上传图片后，会生成对应的url地址，将地址直接拿来引用即可。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1030,7 +1037,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-count">14</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -1043,7 +1050,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">7</span>
+                <span class="site-state-item-count">8</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
