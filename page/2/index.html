@@ -264,6 +264,186 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yjxxclub.cn/2018/04/29/JDBC批处理性能测试/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="阿星">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="阿星的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/04/29/JDBC批处理性能测试/" itemprop="url">JDBC批处理性能测试.md</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-29T10:36:43+08:00">
+                2018-04-29
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>Sometimes我们需要为数据库运行类似类型的批量查询，例如将数据从CSV文件加载到关系数据库表中。 我们知道我们可以选择使用<code>Statement</code>或<code>PreparedStatement</code>来执行查询。 除此之外，JDBC还提供了<code>Batch Processing</code>功能，通过该功能，我们可以一次执行大量查询来处理数据库。下面我将通过不通维度来评估批处理性能。</p>
+<h3 id="插入测试"><a href="#插入测试" class="headerlink" title="插入测试"></a>插入测试</h3><ul>
+<li>Statement 普通插入</li>
+<li>Statement batch插入</li>
+<li>PreparedStatement 普通插入</li>
+<li>PreparedStatement batch插入<h3 id="更新测试"><a href="#更新测试" class="headerlink" title="更新测试"></a>更新测试</h3></li>
+<li>Statement 普通更新</li>
+<li>Statement batch更新</li>
+<li>PreparedStatement 普通更新</li>
+<li>PreparedStatement batch更新</li>
+</ul>
+<h2 id="准备"><a href="#准备" class="headerlink" title="准备"></a>准备</h2><p>创建一个简单的表格<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">-- MySQL DB</span><br><span class="line">CREATE TABLE `Employee` (</span><br><span class="line">  `empId` int(10) unsigned <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">  `name` varchar(10)<span class="built_in"> DEFAULT </span><span class="literal">NULL</span>,</span><br><span class="line">  PRIMARY KEY (`empId`)</span><br><span class="line">) <span class="attribute">ENGINE</span>=InnoDB<span class="built_in"> DEFAULT </span><span class="attribute">CHARSET</span>=utf8;</span><br></pre></td></tr></table></figure></p>
+<p>创建数据库连接信息<br><code>db.properties</code><br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">db.<span class="attribute">driver-class-name</span>=com.mysql.jdbc.Driver</span><br><span class="line">db.<span class="attribute">url</span>=jdbc:mysql://127.0.0.1:3306/javaRelearn?autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;allowMultiQueries=true&amp;rewriteBatchedStatements=false</span><br><span class="line">db.<span class="attribute">username</span>=root</span><br><span class="line">db.<span class="attribute">password</span>=123456</span><br></pre></td></tr></table></figure></p>
+<p>创建DB连接<br><code>DbConn.java</code><br><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">package cn.yjxxclub.java.jdbc;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.FileInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.io.InputStream;</span><br><span class="line"><span class="keyword">import</span> java.sql.Connection;</span><br><span class="line"><span class="keyword">import</span> java.sql.DriverManager;</span><br><span class="line"><span class="keyword">import</span> java.sql.SQLException;</span><br><span class="line"><span class="keyword">import</span> java.util.Properties;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 获取连接实例</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * @author X.Teng</span></span><br><span class="line"><span class="comment"> * @email tengxing7452@163.com</span></span><br><span class="line"><span class="comment"> * @date 18-4-27 上午11:21</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DbConn</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="type">Connection</span> getConnection() &#123;</span><br><span class="line">        <span class="type">Properties</span> props = new <span class="type">Properties</span>();</span><br><span class="line">        <span class="type">Connection</span> con = null;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="type">InputStream</span> <span class="keyword">is</span> = <span class="type">DbConn</span>.<span class="keyword">class</span>.getClassLoader().getResourceAsStream(<span class="string">"db.properties"</span>);</span><br><span class="line">            props.load(<span class="keyword">is</span>);</span><br><span class="line">            <span class="type">Class</span>.forName(props.getProperty(<span class="string">"db.driver-class-name"</span>));</span><br><span class="line">            con = <span class="type">DriverManager</span>.getConnection(props.getProperty(<span class="string">"db.url"</span>),</span><br><span class="line">                    props.getProperty(<span class="string">"db.username"</span>),</span><br><span class="line">                    props.getProperty(<span class="string">"db.password"</span>));</span><br><span class="line">        &#125; <span class="keyword">catch</span> (<span class="type">SQLException</span> e) &#123;</span><br><span class="line">            <span class="type">System</span>.out.<span class="built_in">println</span>(<span class="string">"Check database is UP and configs are correct"</span>);</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (<span class="type">IOException</span> e) &#123;</span><br><span class="line">            <span class="type">System</span>.out.<span class="built_in">println</span>(<span class="string">"Looks like db.property file has some issues"</span>);</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (<span class="type">ClassNotFoundException</span> e) &#123;</span><br><span class="line">            <span class="type">System</span>.out.<span class="built_in">println</span>(<span class="string">"Please include JDBC API jar in classpath"</span>);</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;finally&#123;&#125;</span><br><span class="line">        <span class="keyword">return</span> con;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="插入测试-1"><a href="#插入测试-1" class="headerlink" title="插入测试"></a>插入测试</h2><h3 id="STATEMENT"><a href="#STATEMENT" class="headerlink" title="STATEMENT"></a>STATEMENT</h3><p><code>JDBCStatement.java</code><br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> cn.yjxxclub.java.jdbc.batch;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> cn.yjxxclub.java.jdbc.DbConn;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.sql.Connection;</span><br><span class="line"><span class="keyword">import</span> java.sql.SQLException;</span><br><span class="line"><span class="keyword">import</span> java.sql.Statement;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Statement 普通插入</span></span><br><span class="line"><span class="comment"> * Time Taken=14666</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> XTENG</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@email</span> tengxing7452@163.com</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 18-4-29 上午11:17</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JDBCStatement</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        Connection con = <span class="keyword">null</span>;</span><br><span class="line">        Statement stmt = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            con = DbConn.getConnection();</span><br><span class="line">            stmt = con.createStatement();</span><br><span class="line"></span><br><span class="line">            <span class="keyword">long</span> start = System.currentTimeMillis();</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10000</span>; i++) &#123;</span><br><span class="line">                String query = <span class="string">"insert into Employee values ("</span> + i + <span class="string">",'Name"</span> + i + <span class="string">"')"</span>;</span><br><span class="line">                stmt.execute(query);</span><br><span class="line">            &#125;</span><br><span class="line">            System.out.println(<span class="string">"Time Taken="</span> + (System.currentTimeMillis() - start));</span><br><span class="line"></span><br><span class="line">        &#125; <span class="keyword">catch</span> (SQLException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                stmt.close();</span><br><span class="line">                con.close();</span><br><span class="line">            &#125; <span class="keyword">catch</span> (SQLException e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="PREPAREDSTATEMENT"><a href="#PREPAREDSTATEMENT" class="headerlink" title="PREPAREDSTATEMENT"></a>PREPAREDSTATEMENT</h3><p><code>JDBCPreparedStatement.java</code><br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> cn.yjxxclub.java.jdbc.batch;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> cn.yjxxclub.java.jdbc.DbConn;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.sql.Connection;</span><br><span class="line"><span class="keyword">import</span> java.sql.PreparedStatement;</span><br><span class="line"><span class="keyword">import</span> java.sql.SQLException;</span><br><span class="line"></span><br><span class="line"> <span class="comment">/**</span></span><br><span class="line"><span class="comment"> * PreparedStatement 普通插入</span></span><br><span class="line"><span class="comment"> * Time Taken=14666</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> XTENG</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@email</span> tengxing7452@163.com</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 18-4-29 上午11:19</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JDBCPreparedStatement</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        Connection con = <span class="keyword">null</span>;</span><br><span class="line">        PreparedStatement ps = <span class="keyword">null</span>;</span><br><span class="line">        String query = <span class="string">"insert into Employee values (?,?)"</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            con = DbConn.getConnection();</span><br><span class="line">            ps = con.prepareStatement(query);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">long</span> start = System.currentTimeMillis();</span><br><span class="line"></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10000</span>; i++) &#123;</span><br><span class="line">                ps.setInt(<span class="number">1</span>, i);</span><br><span class="line">                ps.setString(<span class="number">2</span>, <span class="string">"Name"</span>+i);</span><br><span class="line">                ps.execute();</span><br><span class="line">            &#125;</span><br><span class="line">            System.out.println(<span class="string">"Time Taken="</span> + (System.currentTimeMillis() - start));</span><br><span class="line"></span><br><span class="line">        &#125; <span class="keyword">catch</span> (SQLException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                ps.close();</span><br><span class="line">                con.close();</span><br><span class="line">            &#125; <span class="keyword">catch</span> (SQLException e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="STATEMENT-BATCH"><a href="#STATEMENT-BATCH" class="headerlink" title="STATEMENT BATCH"></a>STATEMENT BATCH</h3><p><code>JDBCStatementBatch.java</code><br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> cn.yjxxclub.java.jdbc.batch;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> cn.yjxxclub.java.jdbc.DbConn;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.sql.Connection;</span><br><span class="line"><span class="keyword">import</span> java.sql.SQLException;</span><br><span class="line"><span class="keyword">import</span> java.sql.Statement;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Statement batch插入</span></span><br><span class="line"><span class="comment"> * Time Taken=11605</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> XTENG</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@email</span> tengxing7452@163.com</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 18-4-29 上午11:25</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JDBCStatementBatch</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        Connection con = <span class="keyword">null</span>;</span><br><span class="line">        Statement stmt = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            con = DbConn.getConnection();</span><br><span class="line">            stmt = con.createStatement();</span><br><span class="line"></span><br><span class="line">            <span class="keyword">long</span> start = System.currentTimeMillis();</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10000</span>; i++) &#123;</span><br><span class="line">                String query = <span class="string">"insert into Employee values ("</span> + i + <span class="string">",'Name"</span> + i + <span class="string">"')"</span>;</span><br><span class="line">                stmt.addBatch(query);</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (i % <span class="number">1000</span> == <span class="number">0</span>) &#123;</span><br><span class="line">                    stmt.executeBatch();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            stmt.executeBatch();</span><br><span class="line">            System.out.println(<span class="string">"Time Taken="</span> + (System.currentTimeMillis() - start));</span><br><span class="line"></span><br><span class="line">        &#125; <span class="keyword">catch</span> (SQLException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                stmt.close();</span><br><span class="line">                con.close();</span><br><span class="line">            &#125; <span class="keyword">catch</span> (SQLException e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="PREPAREDSTATEMENT-BATCH"><a href="#PREPAREDSTATEMENT-BATCH" class="headerlink" title="PREPAREDSTATEMENT BATCH"></a>PREPAREDSTATEMENT BATCH</h3><p><code>JDBCPreparedStatementBatch.java</code><br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> cn.yjxxclub.java.jdbc.batch;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> cn.yjxxclub.java.jdbc.DbConn;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.sql.Connection;</span><br><span class="line"><span class="keyword">import</span> java.sql.PreparedStatement;</span><br><span class="line"><span class="keyword">import</span> java.sql.SQLException;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * PreparedStatement batch插入</span></span><br><span class="line"><span class="comment"> * Time Taken=12166</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> XTENG</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@email</span> tengxing7452@163.com</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 18-4-29 上午11:27</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JDBCPreparedStatementBatch</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        Connection con = <span class="keyword">null</span>;</span><br><span class="line">        PreparedStatement ps = <span class="keyword">null</span>;</span><br><span class="line">        String query = <span class="string">"insert into Employee values (?,?)"</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            con = DbConn.getConnection();</span><br><span class="line">            ps = con.prepareStatement(query);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">long</span> start = System.currentTimeMillis();</span><br><span class="line"></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10000</span>; i++) &#123;</span><br><span class="line">                ps.setInt(<span class="number">1</span>, i);</span><br><span class="line">                ps.setString(<span class="number">2</span>, <span class="string">"Name"</span> + i);</span><br><span class="line">                ps.addBatch();</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (i % <span class="number">1000</span> == <span class="number">0</span>) &#123;</span><br><span class="line">                    ps.executeBatch();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            ps.executeBatch();</span><br><span class="line"></span><br><span class="line">            System.out.println(<span class="string">"Time Taken="</span> + (System.currentTimeMillis() - start));</span><br><span class="line">        &#125; <span class="keyword">catch</span> (SQLException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                ps.close();</span><br><span class="line">                con.close();</span><br><span class="line">            &#125; <span class="keyword">catch</span> (SQLException e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="更新测试-1"><a href="#更新测试-1" class="headerlink" title="更新测试"></a>更新测试</h2><p>无</p>
+<h2 id="评估"><a href="#评估" class="headerlink" title="评估"></a>评估</h2><p>下面的测试结果仅仅是个参考,因为一个全面的测试不仅仅只是考虑这几个方面，如：机器性能，数据库类型等等</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:right">mysql</th>
+<th style="text-align:center">STATEMENT</th>
+<th style="text-align:center">PREPAREDSTATEMENT</th>
+<th style="text-align:center">STATEMENT BATCH</th>
+<th>PREPAREDSTATEMENT BATCH</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right">rewriteBatchedStatements=false</td>
+<td style="text-align:center">14666</td>
+<td style="text-align:center">14666</td>
+<td style="text-align:center">11605</td>
+<td>12166</td>
+</tr>
+<tr>
+<td style="text-align:right">rewriteBatchedStatements=true</td>
+<td style="text-align:center">14792</td>
+<td style="text-align:center">13681</td>
+<td style="text-align:center">11755</td>
+<td>248 </td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>说明:在mysql中，默认不会开启batch query，需要设置rewriteBatchedStatements=true，才能实现高性能的批量插入</p>
+</blockquote>
+<p>测试代码托管于<a href="https://github.com/tengxing/java-relearn/tree/master/src/main/java/cn/yjxxclub/java/jdbc/batch" target="_blank" rel="noopener">github</a></p>
+<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>文章开头我说还要更新测试，这里我不想测试了，原因有二</p>
+<ul>
+<li>我这么测试的结果可能不真实，影响因素太多了。</li>
+<li>测试结果不用想,肯定是批量操作比单操作效率要高(不用想)，PREPAREDSTATEMENT 也会稍微高于STATEMENT(<a href="http://blog.yjxxclub.cn/2018/04/28/%E4%BC%98%E9%9B%85%E7%9A%84%E5%AE%9E%E7%8E%B0%20JDBC%20PreparedStatement%20IN%E8%AF%AD%E5%8F%A5/" target="_blank" rel="noopener">看上一篇文章的解释</a>)</li>
+</ul>
+<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><ul>
+<li><a href="https://www.journaldev.com/2494/jdbc-batch-insert-update-mysql-oracle" target="_blank" rel="noopener">https://www.journaldev.com/2494/jdbc-batch-insert-update-mysql-oracle</a></li>
+<li><a href="https://blog.csdn.net/tolcf/article/details/52102849" target="_blank" rel="noopener">https://blog.csdn.net/tolcf/article/details/52102849</a></li>
+<li><a href="https://blog.csdn.net/zhangyadick18/article/details/50294265" target="_blank" rel="noopener">https://blog.csdn.net/zhangyadick18/article/details/50294265</a></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yjxxclub.cn/2018/04/28/Centos7安装python3和pip3/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -855,138 +1035,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yjxxclub.cn/2018/04/15/Filter-/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="阿星">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="阿星的博客">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/04/15/Filter-/" itemprop="url">未命名</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-15T12:44:45+08:00">
-                2018-04-15
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="过滤器和拦截器的区别："><a href="#过滤器和拦截器的区别：" class="headerlink" title="过滤器和拦截器的区别："></a>过滤器和拦截器的区别：</h2><p>　　①拦截器是基于java的反射机制的，而过滤器是基于函数回调。<br>　　②拦截器不依赖与servlet容器，过滤器依赖与servlet容器。<br>　　③拦截器只能对action请求起作用，而过滤器则可以对几乎所有的请求起作用。<br>　　④拦截器可以访问action上下文、值栈里的对象，而过滤器不能访问。<br>　　⑤在action的生命周期中，拦截器可以多次被调用，而过滤器只能在容器初始化时被调用一次。</p>
-<p>　　⑥拦截器可以获取IOC容器中的各个bean，而过滤器就不行，这点很重要，在拦截器里注入一个service，可以调用业务逻辑。</p>
-<p> 1.过滤器和拦截器触发时机不一样:</p>
-<p>　　过滤器是在请求进入容器后，但请求进入servlet之前进行预处理的。请求结束返回也是，是在servlet处理完后，返回给前端之前。</p>
-<p>总结：过滤器包裹住servlet，servlet包裹住拦截器。<br><img src="./2018-04-13 17-14-06屏幕截图.png" alt="ss"><br>2.过滤器的触发时机是容器后，servlet之前，所以过滤器的doFilter(</p>
-<p>ServletRequest request, ServletResponse response, FilterChain chain<br>)的入参是ServletRequest ，而不是httpservletrequest。因为过滤器是在httpservlet之前。</p>
-<p>2.过滤器的触发时机是容器后，servlet之前，所以过滤器的doFilter(</p>
-<p>ServletRequest request, ServletResponse response, FilterChain chain<br>)的入参是ServletRequest ，而不是httpservletrequest。因为过滤器是在httpservlet之前。</p>
-<p>1.过滤器是JavaEE标准，采用函数回调的方式进行。是在请求进入容器之后，还未进入Servlet之前进行预处理，并且在请求结束返回给前端这之间进行后期处理。</p>
-<p>　a.preHandle()这个方法是在过滤器的chain.doFilter(request, response)方法的前一步执行，也就是在 [System.out.println(“before…”)][chain.doFilter(request, response)]之间执行。</p>
-<p>　　b.preHandle()方法之后，在return ModelAndView之前进行，可以操控Controller的ModelAndView内容。</p>
-<p>　　c.afterCompletion()方法是在过滤器返回给前端前一步执行，也就是在[chain.doFilter(request, response)][System.out.println(“after…”)]之间执行。</p>
-<p>总结：拦截器功在对请求权限鉴定方面确实很有用处，在我所参与的这个项目之中，第三方的远程调用每个请求都需要参与鉴定，所以这样做非常方便，而且他是很独立的逻辑，这样做让业务逻辑代码很干净。和框架的其他功能一样，原理很简单，使用起来也很简单，大致看了下SpringMVC这一部分的源码，其实还是比较容易理解的。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1037,7 +1085,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">14</span>
+                <span class="site-state-item-count">15</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -1050,7 +1098,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">8</span>
+                <span class="site-state-item-count">9</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
