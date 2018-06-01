@@ -264,6 +264,151 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yjxxclub.cn/2018/06/01/基于ubuntu16.04自定义开机自启脚本/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="阿星">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="阿星的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/06/01/基于ubuntu16.04自定义开机自启脚本/" itemprop="url">基于ubuntu16.04自定义开机自启脚本.md</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-01T07:36:43+08:00">
+                2018-06-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在项目中，难免服务器出现关机的情况，每次有些服务必须手动启动，十分麻烦，稍有不慎，某些必要的服务没有启动起来，可能导致整个项目崩溃。我这里用的电脑系统是ubuntu16.04的，真实的服务器应该是基于redhat的，这个不重要啦。</p>
+<h2 id="准备脚本"><a href="#准备脚本" class="headerlink" title="准备脚本"></a>准备脚本</h2><h3 id="写脚本"><a href="#写脚本" class="headerlink" title="写脚本"></a>写脚本</h3><p>这一步就不说什么了，看这篇文章的你应该已经把要执行的脚本已经写完了，我昨天写了一个简单的命令脚本，用于测试如下:<br><code>run.sh</code><br><figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo <span class="string">'本次开机时间:'</span>`date`&gt;&gt;/home/tengxing/tmp/<span class="keyword">run</span>.<span class="bash"><span class="built_in">log</span></span></span><br></pre></td></tr></table></figure></p>
+<h3 id="赋执行权限"><a href="#赋执行权限" class="headerlink" title="赋执行权限"></a>赋执行权限</h3><figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo chmod +x <span class="keyword">run</span>.<span class="bash">sh</span></span><br></pre></td></tr></table></figure>
+<p>通过以上步骤一个可执行的脚本就制作OK了，接下来就是要找到某个自启动文件，然后通过自启动文件来启动脚本。</p>
+<blockquote>
+<p>自启的方式有很多，笔者在此使用对于程序开发者来说比较普遍的方式。</p>
+</blockquote>
+<h2 id="rc-local文件"><a href="#rc-local文件" class="headerlink" title="rc.local文件"></a>rc.local文件</h2><p>先来瞄一眼rc.local文件<br><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">tengxing@yjxx-Lenovo:~$ cat <span class="regexp">/etc/</span>rc.local </span><br><span class="line"><span class="comment">#!/bin/sh -e</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># rc.local</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># This script is executed at the end of each multiuser runlevel.</span></span><br><span class="line"><span class="comment"># Make sure that the script will "exit 0" on success or any other</span></span><br><span class="line"><span class="comment"># value on error.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># In order to enable or disable this script just change the execution</span></span><br><span class="line"><span class="comment"># bits.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># By default this script does nothing.</span></span><br><span class="line"><span class="keyword">exit</span> <span class="number">0</span></span><br></pre></td></tr></table></figure></p>
+<p>这个文件一般是在init进程结束的时候执行，因此我们只要在执行完毕以前，也就是exit 0之前,执行我们的自定义脚本即可，可以看看这个文件的注释内容就明白了。</p>
+<h3 id="配置rc-local"><a href="#配置rc-local" class="headerlink" title="配置rc.local"></a>配置rc.local</h3><p>配置如下:<br><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/bin/sh -e</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># rc.local</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># This script is executed at the end of each multiuser runlevel.</span></span><br><span class="line"><span class="comment"># Make sure that the script will "exit 0" on success or any other</span></span><br><span class="line"><span class="comment"># value on error.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># In order to enable or disable this script just change the execution</span></span><br><span class="line"><span class="comment"># bits.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># By default this script does nothing.</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#test </span></span><br><span class="line"><span class="regexp">/home/</span>tengxing<span class="regexp">/tmp/</span>run.sh</span><br><span class="line"><span class="keyword">exit</span> <span class="number">0</span></span><br></pre></td></tr></table></figure></p>
+<p>保存即可，整个过程需要root权限，各位悉知！！！</p>
+<h2 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h2><p><img src="./2018-06-01 08-39-57.png" alt="是"></p>
+<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>上面只是说明了一种常用的方式进行自启动，可以如果还尽早的进行脚本执行的话，可以根据需要放在rc*.d目录下。<br><figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">tengxing<span class="meta">@yjxx</span>-<span class="string">Lenovo:</span>/etc$ ll rc</span><br><span class="line">rc0.d<span class="regexp">/    rc2.d/</span>    rc4.d<span class="regexp">/    rc6.d/</span>    rcS.d/    </span><br><span class="line">rc1.d<span class="regexp">/    rc3.d/</span>    rc5.d/    rc.local</span><br></pre></td></tr></table></figure></p>
+<ul>
+<li>0~6表示启动优先级，数字越小优先级越高，优先启动。</li>
+<li>进入rc*.d目录你会发现，里面都是一个以Kxx或者Sxx开头的软链接</li>
+<li>带K的表示停止(Kill)一个服务，S表示开启(Start)的意思</li>
+<li>一般来说标准的shell脚本最少接受两个参数<code>start</code>和<code>stop</code>，它们分别代表启动和停止服务，额外的参数有:<code>restart</code>,<code>reload</code>,<code>status</code>,<code>force-reload</code>。</li>
+<li>当执行<code>Kxx</code>或者<code>Sxx</code>的脚本时候，会传入<code>stop</code>或<code>start</code>参数，来告诉Kxx链接到的脚本(/etc/init.d/xxx)是启动(/etc/rc.d/init.d/xxx start)或者是停止(/etc/rc.d/init.d/xxx stop)。</li>
+</ul>
+<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>添加到rc.local文件中，但是脚本不执行？检查有否有执行权限+文件路径是否正确。<br>必须使用rc.local这中方式吗?不必须，可以在rc*.d目录下进行软链接启动。</p>
+<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><ul>
+<li><a href="https://blog.csdn.net/anod/article/details/78029933" target="_blank" rel="noopener">Ubuntu 16.04 开机运行程序或脚本</a></li>
+<li><a href="http://blog.sina.com.cn/s/blog_414d78870102vqj5.html" target="_blank" rel="noopener">/etc/rc.d文件目录详解</a></li>
+<li><a href="https://www.cnblogs.com/wspblog/p/4710617.html" target="_blank" rel="noopener">linux /etc/rc.d/目录的详解</a></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yjxxclub.cn/2018/05/31/nginx使用ssl模块配置https/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -860,169 +1005,11 @@ Point</code>，便于异常的时候有选择性的回滚。</p>
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yjxxclub.cn/2018/05/02/如何进入正在执行的Docker container/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="阿星">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="阿星的博客">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/02/如何进入正在执行的Docker container/" itemprop="url">如何进入正在执行的Docker container.md</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-02T10:36:43+08:00">
-                2018-05-02
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>当一个container起来之后，我们有时候希望能进入container内部去看看，比如查查日志，执行些操作等。目前有几种方式可以实现：</p>
-<ul>
-<li>docker attach</li>
-<li>lxc-attach</li>
-<li>nsenter</li>
-<li>ssh</li>
-</ul>
-<h3 id="docker-attach"><a href="#docker-attach" class="headerlink" title="docker attach"></a>docker attach</h3><p>这个是官方提供的一种方法。</p>
-<p>测试，首先启动一个container:</p>
-<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ docker <span class="keyword">run</span><span class="bash"> -i -t ubuntu bash</span></span><br><span class="line"><span class="bash">root@4556f5ad6067:/<span class="comment">#</span></span></span><br></pre></td></tr></table></figure>
-<p>不要退出，打开另一个终端：</p>
-<figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ docker ps</span><br><span class="line">CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES</span><br><span class="line"><span class="number">4556</span>f5ad6067        ubuntu:<span class="number">14.04</span>        <span class="string">"bash"</span>              <span class="number">45</span> <span class="built_in">seconds</span> ago      Up <span class="number">43</span> <span class="built_in">seconds</span>                           jolly_ardinghelli</span><br></pre></td></tr></table></figure>
-<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$ </span>docker attach <span class="number">4556</span>f5ad6067</span><br><span class="line">root<span class="variable">@4556f5ad6067</span><span class="symbol">:/</span><span class="comment">#</span></span><br></pre></td></tr></table></figure>
-<p>这样就连接进去了。这时候如果我们输入一些命令，就能看到在两个终端都有显示和输出。这种方式有比较大的局限性，如果知道了entrypoint或者有程序正在执行，通过docker attach进入之后是不能执行操作的，一个终端退出之后整个container就终止了。不推荐使用这种方式。</p>
-<h3 id="lxc-attach"><a href="#lxc-attach" class="headerlink" title="lxc-attach"></a>lxc-attach</h3><p>如果使用这种方式，首先要保证docker是以lxc方式启动的，具体可以这样做：</p>
-<p>修改/etc/default/docker增加DOCKER_OPTS=”-e lxc”<br>重启docker服务sudo service docker restart<br>启动container的方式和之前一样：</p>
-<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ docker <span class="keyword">run</span><span class="bash"> -i -t ubuntu bash</span></span><br><span class="line"><span class="bash">root@e7f01f0ff598:/<span class="comment">#</span></span></span><br></pre></td></tr></table></figure>
-<p>进入container可以这样：</p>
-<figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ docker ps</span><br><span class="line">CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES</span><br><span class="line">e7f01f0ff598        ubuntu:<span class="number">14.04</span>        <span class="string">"bash"</span>              <span class="number">17</span> <span class="built_in">seconds</span> ago      Up <span class="number">15</span> <span class="built_in">seconds</span>                           grave_jones</span><br></pre></td></tr></table></figure>
-<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ ps aux | grep e7f01f0ff598</span><br><span class="line">root     <span class="number">23691</span>  <span class="number">0.0</span>  <span class="number">0.0</span>  <span class="number">43140</span>  <span class="number">1876</span> pts/<span class="number">9</span>    Ss   <span class="number">21</span>:<span class="number">47</span>   <span class="number">0</span>:<span class="number">00</span> lxc-start -n e7f01f0ff598c80d70a996135c98fbaeddc6daa61436bbbfa735233e8b6f8ebe -f /var/<span class="class"><span class="keyword">lib</span>/<span class="title">docker</span>/<span class="title">containers</span>/<span class="title">e7f01f0ff598c80d70a996135c98fbaeddc6daa61436bbbfa735233e8b6f8ebe</span>/<span class="title">config</span>.<span class="title">lxc</span> -- /.<span class="title">dockerinit</span> -<span class="title">g</span> 172.17.42.1 -<span class="title">i</span> 172.17.0.3/16 -<span class="title">mtu</span> 1500 -- <span class="title">bash</span></span></span><br><span class="line">ma6174   <span class="number">23756</span>  <span class="number">0.0</span>  <span class="number">0.0</span>  <span class="number">13428</span>   <span class="number">928</span> pts/<span class="number">12</span>   S+   <span class="number">21</span>:<span class="number">47</span>   <span class="number">0</span>:<span class="number">00</span> grep --color=auto e7f01f0ff598</span><br><span class="line"></span><br><span class="line">$ sudo lxc-attach -n e7f01f0ff598c80d70a996135c98fbaeddc6daa61436bbbfa735233e8b6f8ebe</span><br><span class="line">root@<span class="symbol">e7f01f0ff598:</span>/<span class="comment">#</span></span><br></pre></td></tr></table></figure>
-<p>这种方式还是很方便的。前提是需要重启docker服务以lxc的方式执行，进入container之后会有一个终端可以执行命令，不影响正在执行的程序。</p>
-<h3 id="nsenter"><a href="#nsenter" class="headerlink" title="nsenter"></a>nsenter</h3><p>如果docker不是以lxc方式启动的，这时候还想进入一个正在执行的container的话，可以考虑使用nsenter</p>
-<p>这个程序的安装方式很独特，使用docker进行安装：</p>
-<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker <span class="keyword">run</span><span class="bash"> --rm -v /usr/<span class="built_in">local</span>/bin:/target jpetazzo/nsenter</span></span><br></pre></td></tr></table></figure>
-<p>使用方法也很简单，首先你要进入的container的PID：</p>
-<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ PID=$(docker inspect --format &#123;&#123;<span class="selector-class">.State</span><span class="selector-class">.Pid</span>&#125;&#125; &lt;container_name_or_ID&gt;)</span><br></pre></td></tr></table></figure>
-<p>然后就可以用这个命令进入container了：</p>
-<figure class="highlight brainfuck"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">$</span> <span class="comment">nsenter</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">target</span> <span class="comment">$PID</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">mount</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">uts</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">ipc</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">net</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">pid</span></span><br></pre></td></tr></table></figure>
-<p>为了使用方便可以写一个脚本自动完成：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ cat /bin/docker_enter</span><br><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line">sudo nsenter --target `docker inspect --format &#123;&#123;.State.Pid&#125;&#125; <span class="variable">$1</span>` --mount --uts --ipc --net --pid bash</span><br></pre></td></tr></table></figure>
-<p>这样每次要进入某个container只需要执行docker_enter &lt;container_name_or_ID&gt;就可以了。</p>
-<h3 id="ssh"><a href="#ssh" class="headerlink" title="ssh"></a>ssh</h3><p>这个原理也很简单，在container里面启动ssh服务，然后通过ssh的方式去登陆到container里面，不推荐这种方式，主要是配置ssh登陆比较繁琐，开启ssh服务也会耗费资源，完全没有必要。</p>
-<p>～～～～～～～～～～～～～～～华丽的分割线～～～～～～～～～～～～～～～</p>
-<p>docker 1.2.0发布，带来一个比较实用的特性的是支持restart参数，可以在docker run的时候指定：</p>
- <figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">--restart</span>=<span class="string">""</span>               Restart<span class="built_in"> policy </span><span class="keyword">to</span> apply when a container exits (<span class="literal">no</span>, on-failure, always)</span><br></pre></td></tr></table></figure>
-<p>有这个参数就比较方便了，比如container里面的服务因为某些原因退出了，之前只能通过外部程序去重新启动container，有了这参数之后可以放container自动重启，当然也可以设置失败重试次数，通过on-failure:5这种方式来指定失败后最多尝试重启5次。</p>
-<p>官方的两个例子：</p>
-<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker <span class="builtin-name">run</span> <span class="attribute">--restart</span>=always redis</span><br><span class="line">docker <span class="builtin-name">run</span> <span class="attribute">--restart</span>=on-failure:5 redis</span><br></pre></td></tr></table></figure>
-<p>其他新特性参考：<a href="https://blog.docker.com/2014/08/announcing-docker-1-2-0/" target="_blank" rel="noopener">https://blog.docker.com/2014/08/announcing-docker-1-2-0/</a></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -1068,7 +1055,7 @@ Point</code>，便于异常的时候有选择性的回滚。</p>
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-count">16</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -1081,7 +1068,7 @@ Point</code>，便于异常的时候有选择性的回滚。</p>
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-count">10</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

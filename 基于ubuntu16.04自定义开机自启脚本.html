@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content=",,,,,,,,," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="前言在项目中，难免服务器出现关机的情况，每次有些服务必须手动启动，十分麻烦，稍有不慎，某些必要的服务没有启动起来，可能导致整个项目崩溃。我这里用的电脑系统是ubuntu16.04的，真实的服务器应该是基于redhat的，这个不重要啦。 准备脚本写脚本这一步就不说什么了，看这篇文章的你应该已经把要执行的脚本已经写完了，我昨天写了一个简单的命令脚本，用于测试如下:run.sh1echo &apos;本次开机时间">
+<meta name="keywords" content="自启 Ubuntu">
+<meta property="og:type" content="website">
+<meta property="og:title" content="基于ubuntu16.04自定义开机自启脚本.md">
+<meta property="og:url" content="http://yjxxclub.cn/基于ubuntu16.04自定义开机自启脚本.html">
+<meta property="og:site_name" content="阿星的博客">
+<meta property="og:description" content="前言在项目中，难免服务器出现关机的情况，每次有些服务必须手动启动，十分麻烦，稍有不慎，某些必要的服务没有启动起来，可能导致整个项目崩溃。我这里用的电脑系统是ubuntu16.04的，真实的服务器应该是基于redhat的，这个不重要啦。 准备脚本写脚本这一步就不说什么了，看这篇文章的你应该已经把要执行的脚本已经写完了，我昨天写了一个简单的命令脚本，用于测试如下:run.sh1echo &apos;本次开机时间">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yjxxclub.cn/2018-06-01%2008-39-57.png">
+<meta property="og:updated_time" content="2018-06-01T01:14:17.999Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="基于ubuntu16.04自定义开机自启脚本.md">
+<meta name="twitter:description" content="前言在项目中，难免服务器出现关机的情况，每次有些服务必须手动启动，十分麻烦，稍有不慎，某些必要的服务没有启动起来，可能导致整个项目崩溃。我这里用的电脑系统是ubuntu16.04的，真实的服务器应该是基于redhat的，这个不重要啦。 准备脚本写脚本这一步就不说什么了，看这篇文章的你应该已经把要执行的脚本已经写完了，我昨天写了一个简单的命令脚本，用于测试如下:run.sh1echo &apos;本次开机时间">
+<meta name="twitter:image" content="http://yjxxclub.cn/2018-06-01%2008-39-57.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yjxxclub.cn/基于ubuntu16.04自定义开机自启脚本.html"/>
+
+
+
+
+
+  <title>基于ubuntu16.04自定义开机自启脚本.md | 阿星的博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">阿星的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+    
+    
+    <div class="post-block page">
+      <header class="post-header">
+
+	<h1 class="post-title" itemprop="name headline">基于ubuntu16.04自定义开机自启脚本.md</h1>
+
+
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+        
+        
+          <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在项目中，难免服务器出现关机的情况，每次有些服务必须手动启动，十分麻烦，稍有不慎，某些必要的服务没有启动起来，可能导致整个项目崩溃。我这里用的电脑系统是ubuntu16.04的，真实的服务器应该是基于redhat的，这个不重要啦。</p>
+<h2 id="准备脚本"><a href="#准备脚本" class="headerlink" title="准备脚本"></a>准备脚本</h2><h3 id="写脚本"><a href="#写脚本" class="headerlink" title="写脚本"></a>写脚本</h3><p>这一步就不说什么了，看这篇文章的你应该已经把要执行的脚本已经写完了，我昨天写了一个简单的命令脚本，用于测试如下:<br><code>run.sh</code><br><figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo <span class="string">'本次开机时间:'</span>`date`&gt;&gt;/home/tengxing/tmp/<span class="keyword">run</span>.<span class="bash"><span class="built_in">log</span></span></span><br></pre></td></tr></table></figure></p>
+<h3 id="赋执行权限"><a href="#赋执行权限" class="headerlink" title="赋执行权限"></a>赋执行权限</h3><figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo chmod +x <span class="keyword">run</span>.<span class="bash">sh</span></span><br></pre></td></tr></table></figure>
+<p>通过以上步骤一个可执行的脚本就制作OK了，接下来就是要找到某个自启动文件，然后通过自启动文件来启动脚本。</p>
+<blockquote>
+<p>自启的方式有很多，笔者在此使用对于程序开发者来说比较普遍的方式。</p>
+</blockquote>
+<h2 id="rc-local文件"><a href="#rc-local文件" class="headerlink" title="rc.local文件"></a>rc.local文件</h2><p>先来瞄一眼rc.local文件<br><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">tengxing@yjxx-Lenovo:~$ cat <span class="regexp">/etc/</span>rc.local </span><br><span class="line"><span class="comment">#!/bin/sh -e</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># rc.local</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># This script is executed at the end of each multiuser runlevel.</span></span><br><span class="line"><span class="comment"># Make sure that the script will "exit 0" on success or any other</span></span><br><span class="line"><span class="comment"># value on error.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># In order to enable or disable this script just change the execution</span></span><br><span class="line"><span class="comment"># bits.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># By default this script does nothing.</span></span><br><span class="line"><span class="keyword">exit</span> <span class="number">0</span></span><br></pre></td></tr></table></figure></p>
+<p>这个文件一般是在init进程结束的时候执行，因此我们只要在执行完毕以前，也就是exit 0之前,执行我们的自定义脚本即可，可以看看这个文件的注释内容就明白了。</p>
+<h3 id="配置rc-local"><a href="#配置rc-local" class="headerlink" title="配置rc.local"></a>配置rc.local</h3><p>配置如下:<br><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/bin/sh -e</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># rc.local</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># This script is executed at the end of each multiuser runlevel.</span></span><br><span class="line"><span class="comment"># Make sure that the script will "exit 0" on success or any other</span></span><br><span class="line"><span class="comment"># value on error.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># In order to enable or disable this script just change the execution</span></span><br><span class="line"><span class="comment"># bits.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># By default this script does nothing.</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#test </span></span><br><span class="line"><span class="regexp">/home/</span>tengxing<span class="regexp">/tmp/</span>run.sh</span><br><span class="line"><span class="keyword">exit</span> <span class="number">0</span></span><br></pre></td></tr></table></figure></p>
+<p>保存即可，整个过程需要root权限，各位悉知！！！</p>
+<h2 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h2><p><img src="./2018-06-01 08-39-57.png" alt="是"></p>
+<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>上面只是说明了一种常用的方式进行自启动，可以如果还尽早的进行脚本执行的话，可以根据需要放在rc*.d目录下。<br><figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">tengxing<span class="meta">@yjxx</span>-<span class="string">Lenovo:</span>/etc$ ll rc</span><br><span class="line">rc0.d<span class="regexp">/    rc2.d/</span>    rc4.d<span class="regexp">/    rc6.d/</span>    rcS.d/    </span><br><span class="line">rc1.d<span class="regexp">/    rc3.d/</span>    rc5.d/    rc.local</span><br></pre></td></tr></table></figure></p>
+<ul>
+<li>0~6表示启动优先级，数字越小优先级越高，优先启动。</li>
+<li>进入rc*.d目录你会发现，里面都是一个以Kxx或者Sxx开头的软链接</li>
+<li>带K的表示停止(Kill)一个服务，S表示开启(Start)的意思</li>
+<li>一般来说标准的shell脚本最少接受两个参数<code>start</code>和<code>stop</code>，它们分别代表启动和停止服务，额外的参数有:<code>restart</code>,<code>reload</code>,<code>status</code>,<code>force-reload</code>。</li>
+<li>当执行<code>Kxx</code>或者<code>Sxx</code>的脚本时候，会传入<code>stop</code>或<code>start</code>参数，来告诉Kxx链接到的脚本(/etc/init.d/xxx)是启动(/etc/rc.d/init.d/xxx start)或者是停止(/etc/rc.d/init.d/xxx stop)。</li>
+</ul>
+<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>添加到rc.local文件中，但是脚本不执行？检查有否有执行权限+文件路径是否正确。<br>必须使用rc.local这中方式吗?不必须，可以在rc*.d目录下进行软链接启动。</p>
+<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><ul>
+<li><a href="https://blog.csdn.net/anod/article/details/78029933" target="_blank" rel="noopener">Ubuntu 16.04 开机运行程序或脚本</a></li>
+<li><a href="http://blog.sina.com.cn/s/blog_414d78870102vqj5.html" target="_blank" rel="noopener">/etc/rc.d文件目录详解</a></li>
+<li><a href="https://www.cnblogs.com/wspblog/p/4710617.html" target="_blank" rel="noopener">linux /etc/rc.d/目录的详解</a></li>
+</ul>
+
+        
+      </div>
+      
+      
+      
+    </div>
+    
+    
+    
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="阿星" />
+          <p class="site-author-name" itemprop="name">阿星</p>
+           
+              <p class="site-description motion-element" itemprop="description">坚持对技术的执着，保持对生活的热情</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">标签</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#准备脚本"><span class="nav-number">2.</span> <span class="nav-text">准备脚本</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#写脚本"><span class="nav-number">2.1.</span> <span class="nav-text">写脚本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#赋执行权限"><span class="nav-number">2.2.</span> <span class="nav-text">赋执行权限</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#rc-local文件"><span class="nav-number">3.</span> <span class="nav-text">rc.local文件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#配置rc-local"><span class="nav-number">3.1.</span> <span class="nav-text">配置rc.local</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#验证"><span class="nav-number">4.</span> <span class="nav-text">验证</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#后记"><span class="nav-number">5.</span> <span class="nav-text">后记</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#问题"><span class="nav-number">6.</span> <span class="nav-text">问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考文章"><span class="nav-number">7.</span> <span class="nav-text">参考文章</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">阿星</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+    <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

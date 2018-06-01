@@ -264,6 +264,164 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yjxxclub.cn/2018/05/02/如何进入正在执行的Docker container/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="阿星">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="阿星的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/02/如何进入正在执行的Docker container/" itemprop="url">如何进入正在执行的Docker container.md</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-02T10:36:43+08:00">
+                2018-05-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>当一个container起来之后，我们有时候希望能进入container内部去看看，比如查查日志，执行些操作等。目前有几种方式可以实现：</p>
+<ul>
+<li>docker attach</li>
+<li>lxc-attach</li>
+<li>nsenter</li>
+<li>ssh</li>
+</ul>
+<h3 id="docker-attach"><a href="#docker-attach" class="headerlink" title="docker attach"></a>docker attach</h3><p>这个是官方提供的一种方法。</p>
+<p>测试，首先启动一个container:</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ docker <span class="keyword">run</span><span class="bash"> -i -t ubuntu bash</span></span><br><span class="line"><span class="bash">root@4556f5ad6067:/<span class="comment">#</span></span></span><br></pre></td></tr></table></figure>
+<p>不要退出，打开另一个终端：</p>
+<figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ docker ps</span><br><span class="line">CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES</span><br><span class="line"><span class="number">4556</span>f5ad6067        ubuntu:<span class="number">14.04</span>        <span class="string">"bash"</span>              <span class="number">45</span> <span class="built_in">seconds</span> ago      Up <span class="number">43</span> <span class="built_in">seconds</span>                           jolly_ardinghelli</span><br></pre></td></tr></table></figure>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$ </span>docker attach <span class="number">4556</span>f5ad6067</span><br><span class="line">root<span class="variable">@4556f5ad6067</span><span class="symbol">:/</span><span class="comment">#</span></span><br></pre></td></tr></table></figure>
+<p>这样就连接进去了。这时候如果我们输入一些命令，就能看到在两个终端都有显示和输出。这种方式有比较大的局限性，如果知道了entrypoint或者有程序正在执行，通过docker attach进入之后是不能执行操作的，一个终端退出之后整个container就终止了。不推荐使用这种方式。</p>
+<h3 id="lxc-attach"><a href="#lxc-attach" class="headerlink" title="lxc-attach"></a>lxc-attach</h3><p>如果使用这种方式，首先要保证docker是以lxc方式启动的，具体可以这样做：</p>
+<p>修改/etc/default/docker增加DOCKER_OPTS=”-e lxc”<br>重启docker服务sudo service docker restart<br>启动container的方式和之前一样：</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ docker <span class="keyword">run</span><span class="bash"> -i -t ubuntu bash</span></span><br><span class="line"><span class="bash">root@e7f01f0ff598:/<span class="comment">#</span></span></span><br></pre></td></tr></table></figure>
+<p>进入container可以这样：</p>
+<figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ docker ps</span><br><span class="line">CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES</span><br><span class="line">e7f01f0ff598        ubuntu:<span class="number">14.04</span>        <span class="string">"bash"</span>              <span class="number">17</span> <span class="built_in">seconds</span> ago      Up <span class="number">15</span> <span class="built_in">seconds</span>                           grave_jones</span><br></pre></td></tr></table></figure>
+<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ ps aux | grep e7f01f0ff598</span><br><span class="line">root     <span class="number">23691</span>  <span class="number">0.0</span>  <span class="number">0.0</span>  <span class="number">43140</span>  <span class="number">1876</span> pts/<span class="number">9</span>    Ss   <span class="number">21</span>:<span class="number">47</span>   <span class="number">0</span>:<span class="number">00</span> lxc-start -n e7f01f0ff598c80d70a996135c98fbaeddc6daa61436bbbfa735233e8b6f8ebe -f /var/<span class="class"><span class="keyword">lib</span>/<span class="title">docker</span>/<span class="title">containers</span>/<span class="title">e7f01f0ff598c80d70a996135c98fbaeddc6daa61436bbbfa735233e8b6f8ebe</span>/<span class="title">config</span>.<span class="title">lxc</span> -- /.<span class="title">dockerinit</span> -<span class="title">g</span> 172.17.42.1 -<span class="title">i</span> 172.17.0.3/16 -<span class="title">mtu</span> 1500 -- <span class="title">bash</span></span></span><br><span class="line">ma6174   <span class="number">23756</span>  <span class="number">0.0</span>  <span class="number">0.0</span>  <span class="number">13428</span>   <span class="number">928</span> pts/<span class="number">12</span>   S+   <span class="number">21</span>:<span class="number">47</span>   <span class="number">0</span>:<span class="number">00</span> grep --color=auto e7f01f0ff598</span><br><span class="line"></span><br><span class="line">$ sudo lxc-attach -n e7f01f0ff598c80d70a996135c98fbaeddc6daa61436bbbfa735233e8b6f8ebe</span><br><span class="line">root@<span class="symbol">e7f01f0ff598:</span>/<span class="comment">#</span></span><br></pre></td></tr></table></figure>
+<p>这种方式还是很方便的。前提是需要重启docker服务以lxc的方式执行，进入container之后会有一个终端可以执行命令，不影响正在执行的程序。</p>
+<h3 id="nsenter"><a href="#nsenter" class="headerlink" title="nsenter"></a>nsenter</h3><p>如果docker不是以lxc方式启动的，这时候还想进入一个正在执行的container的话，可以考虑使用nsenter</p>
+<p>这个程序的安装方式很独特，使用docker进行安装：</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker <span class="keyword">run</span><span class="bash"> --rm -v /usr/<span class="built_in">local</span>/bin:/target jpetazzo/nsenter</span></span><br></pre></td></tr></table></figure>
+<p>使用方法也很简单，首先你要进入的container的PID：</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ PID=$(docker inspect --format &#123;&#123;<span class="selector-class">.State</span><span class="selector-class">.Pid</span>&#125;&#125; &lt;container_name_or_ID&gt;)</span><br></pre></td></tr></table></figure>
+<p>然后就可以用这个命令进入container了：</p>
+<figure class="highlight brainfuck"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">$</span> <span class="comment">nsenter</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">target</span> <span class="comment">$PID</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">mount</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">uts</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">ipc</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">net</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">pid</span></span><br></pre></td></tr></table></figure>
+<p>为了使用方便可以写一个脚本自动完成：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ cat /bin/docker_enter</span><br><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line">sudo nsenter --target `docker inspect --format &#123;&#123;.State.Pid&#125;&#125; <span class="variable">$1</span>` --mount --uts --ipc --net --pid bash</span><br></pre></td></tr></table></figure>
+<p>这样每次要进入某个container只需要执行docker_enter &lt;container_name_or_ID&gt;就可以了。</p>
+<h3 id="ssh"><a href="#ssh" class="headerlink" title="ssh"></a>ssh</h3><p>这个原理也很简单，在container里面启动ssh服务，然后通过ssh的方式去登陆到container里面，不推荐这种方式，主要是配置ssh登陆比较繁琐，开启ssh服务也会耗费资源，完全没有必要。</p>
+<p>～～～～～～～～～～～～～～～华丽的分割线～～～～～～～～～～～～～～～</p>
+<p>docker 1.2.0发布，带来一个比较实用的特性的是支持restart参数，可以在docker run的时候指定：</p>
+ <figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">--restart</span>=<span class="string">""</span>               Restart<span class="built_in"> policy </span><span class="keyword">to</span> apply when a container exits (<span class="literal">no</span>, on-failure, always)</span><br></pre></td></tr></table></figure>
+<p>有这个参数就比较方便了，比如container里面的服务因为某些原因退出了，之前只能通过外部程序去重新启动container，有了这参数之后可以放container自动重启，当然也可以设置失败重试次数，通过on-failure:5这种方式来指定失败后最多尝试重启5次。</p>
+<p>官方的两个例子：</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker <span class="builtin-name">run</span> <span class="attribute">--restart</span>=always redis</span><br><span class="line">docker <span class="builtin-name">run</span> <span class="attribute">--restart</span>=on-failure:5 redis</span><br></pre></td></tr></table></figure>
+<p>其他新特性参考：<a href="https://blog.docker.com/2014/08/announcing-docker-1-2-0/" target="_blank" rel="noopener">https://blog.docker.com/2014/08/announcing-docker-1-2-0/</a></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yjxxclub.cn/2018/04/29/JDBC批处理性能测试/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -444,139 +602,6 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yjxxclub.cn/2018/04/28/Centos7安装python3和pip3/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="阿星">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="阿星的博客">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/04/28/Centos7安装python3和pip3/" itemprop="url">Centos7安装python3和pip3.md</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-28T12:36:43+08:00">
-                2018-04-28
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p> 为甚么安装python3和pip3，因为20年py2就不跟新了，所以提前跑路升级python3，并汇总了我的安装过程，希望能给大家一点帮助。</p>
-<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><h3 id="依赖"><a href="#依赖" class="headerlink" title="依赖"></a>依赖</h3><figure class="highlight clean"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 防止ImportError: cannot <span class="keyword">import</span> name <span class="string">'HTTPSHandler'</span></span><br><span class="line">sudo yum install openssl-devel -y </span><br><span class="line"># 防止ImportError: cannot <span class="keyword">import</span> name <span class="string">'zlib'</span></span><br><span class="line">sudo yum install zlib-devel -y</span><br></pre></td></tr></table></figure>
-<h3 id="Python3安装"><a href="#Python3安装" class="headerlink" title="Python3安装"></a>Python3安装</h3><figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">wget --<span class="keyword">no</span>-check-certificate http<span class="variable">s:</span>//www.<span class="keyword">python</span>.org/ftp/<span class="keyword">python</span>/<span class="number">3.6</span>.<span class="number">0</span>/Python-<span class="number">3.6</span>.<span class="number">0</span>.tgz</span><br><span class="line"></span><br><span class="line">tar -xzvf Python-<span class="number">3.6</span>.<span class="number">0</span>.tgz </span><br><span class="line"></span><br><span class="line"><span class="keyword">cd</span> Python-<span class="number">3.6</span>.<span class="number">0</span></span><br><span class="line"></span><br><span class="line">sudo ./configure --prefix=/usr/local/<span class="keyword">python3</span>/ --with-zlib=/usr/include --enable-loadable-sqlite-extensions</span><br><span class="line"></span><br><span class="line">sudo <span class="keyword">make</span> &amp;&amp; <span class="keyword">make</span> install</span><br><span class="line">sudo <span class="keyword">ln</span> -s /usr/local/<span class="keyword">python3</span>/bin/<span class="keyword">python3</span> /usr/local/bin/<span class="keyword">python3</span></span><br></pre></td></tr></table></figure>
-<h3 id="setuptools安装"><a href="#setuptools安装" class="headerlink" title="setuptools安装"></a>setuptools安装</h3><figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">wget --<span class="keyword">no</span>-check-certificate http<span class="variable">s:</span>//pypi.<span class="keyword">python</span>.org/packages/<span class="keyword">source</span>/s/setuptools/setuptools-<span class="number">19.6</span>.tar.gz#md5=c607dd118eae682c44ed146367a17e26 </span><br><span class="line"></span><br><span class="line">tar -zxvf setuptools-<span class="number">19.6</span>.tar.gz </span><br><span class="line"><span class="keyword">cd</span> setuptools-<span class="number">19.6</span></span><br><span class="line">sudo <span class="keyword">python3</span> setup.<span class="keyword">py</span> build </span><br><span class="line">sudo <span class="keyword">python3</span> setup.<span class="keyword">py</span> install</span><br></pre></td></tr></table></figure>
-<h3 id="pip3安装"><a href="#pip3安装" class="headerlink" title="pip3安装"></a>pip3安装</h3><figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">wget --<span class="keyword">no</span>-check-certificate http<span class="variable">s:</span>//pypi.<span class="keyword">python</span>.org/packages/<span class="keyword">source</span>/<span class="keyword">p</span>/pip/pip-<span class="number">8.0</span>.<span class="number">2</span>.tar.gz#md5=<span class="number">3</span>a73c4188f8dbad6a1e6f6d44d117eeb </span><br><span class="line"></span><br><span class="line">tar -zxvf pip-<span class="number">8.0</span>.<span class="number">2</span>.tar.gz </span><br><span class="line"><span class="keyword">cd</span> pip-<span class="number">8.0</span>.<span class="number">2</span> </span><br><span class="line">sudo <span class="keyword">python3</span> setup.<span class="keyword">py</span> build </span><br><span class="line">sudo <span class="keyword">python3</span> setup.<span class="keyword">py</span> install</span><br><span class="line">sudo <span class="keyword">ln</span> -s /usr/local/<span class="keyword">python3</span>.<span class="number">4</span>/bin/pip3 /usr/bin/pip3</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>建议把<code>pip</code>和<code>python</code>分别指向<code>pip3</code>和<code>python3</code>！</p>
-</blockquote>
-<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>无</p>
-<h2 id="参考书籍："><a href="#参考书籍：" class="headerlink" title="参考书籍："></a>参考书籍：</h2><ol>
-<li><a href="https://blog.csdn.net/jql1994/article/details/53096593" target="_blank" rel="noopener">https://blog.csdn.net/jql1994/article/details/53096593</a></li>
-<li><a href="https://blog.csdn.net/zuolovefu/article/details/78142612" target="_blank" rel="noopener">https://blog.csdn.net/zuolovefu/article/details/78142612</a></li>
-<li><a href="http://www.cnblogs.com/wenchengxiaopenyou/p/5709218.html" target="_blank" rel="noopener">http://www.cnblogs.com/wenchengxiaopenyou/p/5709218.html</a></li>
-</ol>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yjxxclub.cn/2018/04/28/优雅的实现 JDBC PreparedStatement IN语句/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -672,6 +697,139 @@
 <h3 id="測試"><a href="#測試" class="headerlink" title="測試"></a>測試</h3><p><code>JDBCPreparedStatementINTest.java</code><br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> cn.yjxxclub.java.jdbc.preparedstatusmentin;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 测试程序</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> XTENG</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@email</span> tengxing7452@163.com</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 18-4-28 下午4:48</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JDBCPreparedStatementINTest</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span>[] ids = &#123;<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>,<span class="number">6</span>,<span class="number">7</span>,<span class="number">8</span>,<span class="number">9</span>,<span class="number">10</span>&#125;;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        JDBCPreparedStatementSingle.printData(ids);</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">"*********"</span>);</span><br><span class="line"></span><br><span class="line">        JDBCPreparedStatementDynamic.printData(ids);</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">"*********"</span>);</span><br><span class="line"></span><br><span class="line">        JDBCPreparedStatementNULL.printData(ids);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <p>输出:<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">User <span class="attribute">ID</span>=1, <span class="attribute">Name</span>=Pankaj</span><br><span class="line">User <span class="attribute">ID</span>=4, <span class="attribute">Name</span>=David</span><br><span class="line">User <span class="attribute">ID</span>=5, <span class="attribute">Name</span>=Raman</span><br><span class="line">*********</span><br><span class="line">User <span class="attribute">ID</span>=1, <span class="attribute">Name</span>=Pankaj</span><br><span class="line">User <span class="attribute">ID</span>=4, <span class="attribute">Name</span>=David</span><br><span class="line">User <span class="attribute">ID</span>=5, <span class="attribute">Name</span>=Raman</span><br><span class="line">*********</span><br><span class="line">User <span class="attribute">ID</span>=1, <span class="attribute">Name</span>=Pankaj</span><br><span class="line">User <span class="attribute">ID</span>=4, <span class="attribute">Name</span>=David</span><br><span class="line">User <span class="attribute">ID</span>=5, <span class="attribute">Name</span>=Raman</span><br></pre></td></tr></table></figure></p>
 <h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>这就是我们为查询中的IN子句使用PreparedStatement的不同实现形式。大家可以根据项目要求使用其中任何一种。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yjxxclub.cn/2018/04/28/Centos7安装python3和pip3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="阿星">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="阿星的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/04/28/Centos7安装python3和pip3/" itemprop="url">Centos7安装python3和pip3.md</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-28T12:36:43+08:00">
+                2018-04-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p> 为甚么安装python3和pip3，因为20年py2就不跟新了，所以提前跑路升级python3，并汇总了我的安装过程，希望能给大家一点帮助。</p>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><h3 id="依赖"><a href="#依赖" class="headerlink" title="依赖"></a>依赖</h3><figure class="highlight clean"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 防止ImportError: cannot <span class="keyword">import</span> name <span class="string">'HTTPSHandler'</span></span><br><span class="line">sudo yum install openssl-devel -y </span><br><span class="line"># 防止ImportError: cannot <span class="keyword">import</span> name <span class="string">'zlib'</span></span><br><span class="line">sudo yum install zlib-devel -y</span><br></pre></td></tr></table></figure>
+<h3 id="Python3安装"><a href="#Python3安装" class="headerlink" title="Python3安装"></a>Python3安装</h3><figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">wget --<span class="keyword">no</span>-check-certificate http<span class="variable">s:</span>//www.<span class="keyword">python</span>.org/ftp/<span class="keyword">python</span>/<span class="number">3.6</span>.<span class="number">0</span>/Python-<span class="number">3.6</span>.<span class="number">0</span>.tgz</span><br><span class="line"></span><br><span class="line">tar -xzvf Python-<span class="number">3.6</span>.<span class="number">0</span>.tgz </span><br><span class="line"></span><br><span class="line"><span class="keyword">cd</span> Python-<span class="number">3.6</span>.<span class="number">0</span></span><br><span class="line"></span><br><span class="line">sudo ./configure --prefix=/usr/local/<span class="keyword">python3</span>/ --with-zlib=/usr/include --enable-loadable-sqlite-extensions</span><br><span class="line"></span><br><span class="line">sudo <span class="keyword">make</span> &amp;&amp; <span class="keyword">make</span> install</span><br><span class="line">sudo <span class="keyword">ln</span> -s /usr/local/<span class="keyword">python3</span>/bin/<span class="keyword">python3</span> /usr/local/bin/<span class="keyword">python3</span></span><br></pre></td></tr></table></figure>
+<h3 id="setuptools安装"><a href="#setuptools安装" class="headerlink" title="setuptools安装"></a>setuptools安装</h3><figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">wget --<span class="keyword">no</span>-check-certificate http<span class="variable">s:</span>//pypi.<span class="keyword">python</span>.org/packages/<span class="keyword">source</span>/s/setuptools/setuptools-<span class="number">19.6</span>.tar.gz#md5=c607dd118eae682c44ed146367a17e26 </span><br><span class="line"></span><br><span class="line">tar -zxvf setuptools-<span class="number">19.6</span>.tar.gz </span><br><span class="line"><span class="keyword">cd</span> setuptools-<span class="number">19.6</span></span><br><span class="line">sudo <span class="keyword">python3</span> setup.<span class="keyword">py</span> build </span><br><span class="line">sudo <span class="keyword">python3</span> setup.<span class="keyword">py</span> install</span><br></pre></td></tr></table></figure>
+<h3 id="pip3安装"><a href="#pip3安装" class="headerlink" title="pip3安装"></a>pip3安装</h3><figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">wget --<span class="keyword">no</span>-check-certificate http<span class="variable">s:</span>//pypi.<span class="keyword">python</span>.org/packages/<span class="keyword">source</span>/<span class="keyword">p</span>/pip/pip-<span class="number">8.0</span>.<span class="number">2</span>.tar.gz#md5=<span class="number">3</span>a73c4188f8dbad6a1e6f6d44d117eeb </span><br><span class="line"></span><br><span class="line">tar -zxvf pip-<span class="number">8.0</span>.<span class="number">2</span>.tar.gz </span><br><span class="line"><span class="keyword">cd</span> pip-<span class="number">8.0</span>.<span class="number">2</span> </span><br><span class="line">sudo <span class="keyword">python3</span> setup.<span class="keyword">py</span> build </span><br><span class="line">sudo <span class="keyword">python3</span> setup.<span class="keyword">py</span> install</span><br><span class="line">sudo <span class="keyword">ln</span> -s /usr/local/<span class="keyword">python3</span>.<span class="number">4</span>/bin/pip3 /usr/bin/pip3</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>建议把<code>pip</code>和<code>python</code>分别指向<code>pip3</code>和<code>python3</code>！</p>
+</blockquote>
+<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>无</p>
+<h2 id="参考书籍："><a href="#参考书籍：" class="headerlink" title="参考书籍："></a>参考书籍：</h2><ol>
+<li><a href="https://blog.csdn.net/jql1994/article/details/53096593" target="_blank" rel="noopener">https://blog.csdn.net/jql1994/article/details/53096593</a></li>
+<li><a href="https://blog.csdn.net/zuolovefu/article/details/78142612" target="_blank" rel="noopener">https://blog.csdn.net/zuolovefu/article/details/78142612</a></li>
+<li><a href="http://www.cnblogs.com/wenchengxiaopenyou/p/5709218.html" target="_blank" rel="noopener">http://www.cnblogs.com/wenchengxiaopenyou/p/5709218.html</a></li>
+</ol>
 
           
         
@@ -867,179 +1025,11 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yjxxclub.cn/2018/04/16/基于hexo搭建博客/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="阿星">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="阿星的博客">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/04/16/基于hexo搭建博客/" itemprop="url">基于hexo搭建博客.md</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-16T12:36:43+08:00">
-                2018-04-16
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>一直听说用hexo搭建一个拥有自己域名的博客是很酷炫的事情~，在这十一花上半个小时整个hexo博客岂不美哉。</p>
-<p>使用Hexo吸引我的是，其简单优雅, 而且风格多变, 适合程序员搭建个人博客,而且支持多平台的搭建，再加上有些node,git基础，分分钟创建出一个高大上的博客。废话少说，开始吧。<br>特点:</p>
-<ul>
-<li>Blazing Fast</li>
-<li>Markdown Support</li>
-<li>One-Command Deployment</li>
-<li>Various Plugins</li>
-</ul>
-<blockquote>
-<p>其实真正还是喜欢<code>markdown</code>写文章。</p>
-</blockquote>
-<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo npm install -g hexo</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> hexo init blog</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> blog</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> npm install</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> hexo server</span></span><br></pre></td></tr></table></figure>
-<p>此时，浏览器中打开网址<a href="http://localhost:4000，到此安装结束！" target="_blank" rel="noopener">http://localhost:4000，到此安装结束！</a></p>
-<blockquote>
-<p>其实<code>hexo</code>就是一个基于<code>node</code>的程序而已。</p>
-</blockquote>
-<h2 id="写文章"><a href="#写文章" class="headerlink" title="写文章"></a>写文章</h2><p>在写文章之前说一下，blog也就是博客的相关目录<br><figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ ls</span><br><span class="line">_config<span class="selector-class">.yml</span>  hexo          package<span class="selector-class">.json</span>       public     source</span><br><span class="line">db<span class="selector-class">.json</span>      node_modules  package-lock<span class="selector-class">.json</span>  scaffolds  themes</span><br></pre></td></tr></table></figure></p>
-<ul>
-<li>_config.yml是blog的个性化配置文件</li>
-<li>source是保存文章的目录(原始markdown文件)</li>
-<li>themes是博客网站的主题<br>其他的文件夹和node项目差不多了，如果对node熟悉，就很容易理解，这里不说了。<br>下面开始写文章：<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$ </span>hexo new post haha</span><br><span class="line">INFO  <span class="symbol">Created:</span> ~<span class="regexp">/workspace/blog</span><span class="regexp">/source/</span>_posts/haha.md <span class="comment">#会在source/_posts生成haha文件</span></span><br><span class="line">vi ~<span class="regexp">/workspace/blog</span><span class="regexp">/source/</span>_posts/haha.md </span><br><span class="line"><span class="variable">$ </span>hexo generate        或者：hexo g <span class="comment"># 生成html文件</span></span><br><span class="line"><span class="variable">$ </span>hexo s        或者：hexo server</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-<p>这样就可以看到了在浏览器。</p>
-<h2 id="个性化配置"><a href="#个性化配置" class="headerlink" title="个性化配置"></a>个性化配置</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> Hexo Configuration Hexo配置文件</span></span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># Docs: https://hexo.io/docs/configuration.html</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># Source: https://github.com/hexojs/hexo/</span></span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 网站信息</span></span><br><span class="line"><span class="meta">#</span><span class="bash">标题</span></span><br><span class="line">title: 学志の博客</span><br><span class="line"><span class="meta">#</span><span class="bash">副标题</span></span><br><span class="line">subtitle: 记录学习的技能和遇到的问题</span><br><span class="line"><span class="meta">#</span><span class="bash">网站描述</span></span><br><span class="line">description: 做自己爱做的事，爱自己在做的事！</span><br><span class="line"><span class="meta">#</span><span class="bash">作者昵称</span></span><br><span class="line">author: 张学志</span><br><span class="line"><span class="meta">#</span><span class="bash">网站语言，默认英语，设置简体汉语</span></span><br><span class="line">language: zh-Hans</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash">时区，默认电脑时区</span></span><br><span class="line"><span class="meta">#</span><span class="bash">timezone: </span></span><br><span class="line">timezone: Asia/Shanghai</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 网址设置</span></span><br><span class="line"><span class="meta">#</span><span class="bash">如果网站是放在子目录中，将url设置成<span class="string">'http://yoursite.com/child'</span>，将root设置成<span class="string">'/child/'</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">网址</span></span><br><span class="line">url: http://zhangxuezhi.com</span><br><span class="line"><span class="meta">#</span><span class="bash">网站根目录。如果网站是放在子目录中，将root设置成<span class="string">'子目录名'</span></span></span><br><span class="line">root: /</span><br><span class="line"><span class="meta">#</span><span class="bash">文章链接地址格式 。即文章存放的目录。</span></span><br><span class="line">permalink: :year/:month/:day/:title/</span><br><span class="line">permalink_defaults:</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 目录设置</span></span><br><span class="line"><span class="meta">#</span><span class="bash">资源文件夹，放在里面的文件会上传到github中</span></span><br><span class="line">source_dir: source</span><br><span class="line"><span class="meta">#</span><span class="bash">公共文件夹，存放生成的静态文件</span></span><br><span class="line">public_dir: public</span><br><span class="line"><span class="meta">#</span><span class="bash">标签文件夹，默认是tags。实际存放在<span class="built_in">source</span>/tags中。</span></span><br><span class="line">tag_dir: tags</span><br><span class="line">rss_dir: rss</span><br><span class="line"><span class="meta">#</span><span class="bash">档案文件夹，默认是archives。</span></span><br><span class="line">archive_dir: archives</span><br><span class="line"><span class="meta">#</span><span class="bash">分类文件夹，默认是categories。实际存放在<span class="built_in">source</span>/categories中。</span></span><br><span class="line">category_dir: categories</span><br><span class="line"><span class="meta">#</span><span class="bash">代码文件夹，默认是downloads/code</span></span><br><span class="line">code_dir: downloads/code</span><br><span class="line"><span class="meta">#</span><span class="bash">国际化文件夹，默认跟language相同</span></span><br><span class="line">i18n_dir: :lang</span><br><span class="line"><span class="meta">#</span><span class="bash">不需要渲染的文件夹或文件夹,放在[]中</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 这两个文件是百度和google的站长验证文件，不能渲染，否则会改变内容，不能验证过</span></span><br><span class="line">skip_render: [baidu_verify_R9MZjdMkXT.html, google0f8fac7da2b48ef8.html, README.md, 模板.md]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 写作选项</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 新建博文（帖子）的默认名称</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> File name of new posts</span></span><br><span class="line">new_post_name: :title.md </span><br><span class="line"><span class="meta">#</span><span class="bash">默认布局模板是post，而不是draft和page</span></span><br><span class="line">default_layout: post</span><br><span class="line"><span class="meta">#</span><span class="bash">是否将标题转换成标题形式（首字母大写）</span></span><br><span class="line">titlecase: false # Transform title into titlecase</span><br><span class="line"><span class="meta">#</span><span class="bash">在新标签页面中打开网页</span></span><br><span class="line">external_link: true # Open external links in new tab</span><br><span class="line">filename_case: 0</span><br><span class="line"><span class="meta">#</span><span class="bash">是否渲染草稿</span></span><br><span class="line">render_drafts: false</span><br><span class="line"><span class="meta">#</span><span class="bash">启动 Asset 文件夹</span></span><br><span class="line">post_asset_folder: false</span><br><span class="line"><span class="meta">#</span><span class="bash">把链接改为与根目录的相对位址</span></span><br><span class="line">relative_link: false</span><br><span class="line"><span class="meta">#</span><span class="bash">显示未来的文章</span></span><br><span class="line">future: true</span><br><span class="line"><span class="meta">#</span><span class="bash">代码块的设置</span></span><br><span class="line">highlight:</span><br><span class="line">  enable: true          #  使用代码高亮</span><br><span class="line">  line_number: true # 显示行号</span><br><span class="line">  auto_detect: true  # 自动检测语言</span><br><span class="line">  tab_replace:</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 分类和标签</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 默认分类</span></span><br><span class="line">default_category: uncategorized</span><br><span class="line"><span class="meta">#</span><span class="bash">分类别名</span></span><br><span class="line">category_map:</span><br><span class="line"><span class="meta">#</span><span class="bash">标签别名</span></span><br><span class="line">tag_map:</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 日期和时间格式</span></span><br><span class="line"><span class="meta">#</span><span class="bash">Hexo 使用 Moment.js 来解析和显示时间。</span></span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># You can customize the date format as defined in</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># http://momentjs.com/docs/#/displaying/format/</span></span></span><br><span class="line">date_format: YYYY-MM-DD</span><br><span class="line">time_format: HH:mm:ss</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 分页配置</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> ---------------下面选项需要对应插件的支持---------------</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> npm install hexo-generator-index --save</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> npm install hexo-generator-archive --save</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> npm install hexo-generator-category --save</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> npm install hexo-generator-tag --save</span></span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># Set per_page to 0 to disable pagination</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">每页显示的文章量 </span></span><br><span class="line"><span class="meta">#</span><span class="bash">per_page: 20</span></span><br><span class="line"><span class="meta">#</span><span class="bash">首页的分页设置</span></span><br><span class="line">index_generator:</span><br><span class="line">  per_page: 5</span><br><span class="line"><span class="meta">#</span><span class="bash">归档页的分页设置</span></span><br><span class="line">archive_generator:</span><br><span class="line">  per_page: 30</span><br><span class="line">  yearly: true</span><br><span class="line">  monthly: true</span><br><span class="line"><span class="meta">#</span><span class="bash">标签页的分页设置</span></span><br><span class="line">tag_generator:</span><br><span class="line">  per_page: 20</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash">分页路径，在public中可以看到</span></span><br><span class="line"><span class="meta">#</span><span class="bash">pagination_dir: page</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> Extensions 拓展插件配置</span></span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># Plugins: https://hexo.io/plugins/</span></span></span><br><span class="line">plugins: </span><br><span class="line">baidusitemap: </span><br><span class="line">  path: baidusitemap.xml</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 配置RSS</span></span><br><span class="line">feed: </span><br><span class="line"><span class="meta">  #</span><span class="bash">feed 类型 (atom/rss2)</span></span><br><span class="line">  type: atom   </span><br><span class="line"><span class="meta">  #</span><span class="bash">rss 路径</span></span><br><span class="line">  path: atom.xml  </span><br><span class="line"><span class="meta">  #</span><span class="bash">在 rss 中最多生成的文章数(0显示所有)</span></span><br><span class="line">  limit: 0</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 自定义站点内容搜索</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 需要先安装插件：</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> npm install hexo-generator-search --save</span></span><br><span class="line">search:</span><br><span class="line">  path: search.xml</span><br><span class="line"><span class="meta">  #</span><span class="bash"> 如只想索引文章，可设置为post</span></span><br><span class="line">  field: all </span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 主题配置</span></span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># Themes: https://hexo.io/themes/</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">theme: <span class="literal">false</span> <span class="comment">#禁用主题</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">theme: landscape</span></span><br><span class="line">theme: next</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 部署配置</span></span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># Docs: https://hexo.io/docs/deployment.html</span></span></span><br><span class="line">deploy:</span><br><span class="line">  type: git</span><br><span class="line"><span class="meta">  #</span><span class="bash">repo: https://github.com/xuezhisd/xuezhisd.github.io.git</span></span><br><span class="line">  repo: </span><br><span class="line">    # 部署到github</span><br><span class="line">    github: git@github.com:xuezhisd/xuezhisd.github.io.git,master</span><br><span class="line">    # 部署到coding.net。取消注释，可同时部署</span><br><span class="line">    #coding: git@git.coding.net:xuezhisd/blog.git,coding-pages</span><br><span class="line"><span class="meta">  #</span><span class="bash"><span class="built_in">type</span>: baidu_url_submitter</span></span><br></pre></td></tr></table></figure>
-<h2 id="主题"><a href="#主题" class="headerlink" title="主题"></a>主题</h2><p>你可以到(Hexo官网主题)[<a href="https://hexo.io/themes/]页去搜寻自己喜欢的theme。这里以(hexo-theme-next)[https://theme-next.org/]为例" target="_blank" rel="noopener">https://hexo.io/themes/]页去搜寻自己喜欢的theme。这里以(hexo-theme-next)[https://theme-next.org/]为例</a></p>
-<p>终端cd到 blog 目录下执行如下命令：</p>
-<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git clone http<span class="variable">s:</span>//github.<span class="keyword">com</span>/iissnan/hexo-theme-<span class="keyword">next</span> themes/<span class="keyword">next</span></span><br></pre></td></tr></table></figure>
-<p>将blog目录下<code>_config.yml</code>里theme的名称landscape修改为<code>next</code></p>
-<p>终端cd到<code>blog</code>目录下执行如下命令(每次部署文章的步骤)：</p>
-<figure class="highlight gams"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">$</span> hexo clean           <span class="comment">//清除缓存文件 (db.json) 和已生成的静态文件 (public)</span></span><br><span class="line"><span class="symbol">$</span> hexo g             <span class="comment">//生成缓存和静态文件</span></span><br><span class="line"><span class="symbol">$</span> hexo d             <span class="comment">//重新部署到服务器</span></span><br></pre></td></tr></table></figure>
-<p>至于更改theme内容，比如名称，描述，头像等去修改blog/_config.yml文件和blog/themes/next/_config.yml文件中对应的属性名称即可，不要忘记冒号:后加空格。NexT 使用文档里有极详细的介绍。</p>
-<h2 id="集成github"><a href="#集成github" class="headerlink" title="集成github"></a>集成github</h2><p>现在github新建一个名为<code>xxx.github.io</code>的仓库<br>终端cd到<code>blog</code>文件夹下，<code>vim</code>打开<code>_config.yml</code>，命令如下：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> vim _config.yml</span></span><br></pre></td></tr></table></figure>
-<p>打开后往下滑到最后，修改成下边的样子：</p>
-<p>deploy:<br>    type: git<br>    repository: <a href="https://github.com/xxx/xxx.github.io.git" target="_blank" rel="noopener">https://github.com/xxx/xxx.github.io.git</a><br>    branch: master<br>你需要将repository后xxx换成你自己的用户名　　</p>
-<p>再执行配置命令：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> hexo deploy            或者：hexo d</span></span><br></pre></td></tr></table></figure>
-<p>若执行命令hexo deploy仍然报错：无法连接git或找不到git，则执行如下命令来安装<code>hexo-deployer-git</code>：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> npm install hexo-deployer-git --save</span></span><br></pre></td></tr></table></figure>
-<p>若你未关联Github，则执行hexo deploy命令时终端会提示你输入Github的用户名和密码，即</p>
-<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Username <span class="keyword">for</span> <span class="symbol">'https</span>:<span class="comment">//github.com':</span></span><br><span class="line">Password <span class="keyword">for</span> <span class="symbol">'https</span>:<span class="comment">//github.com':</span></span><br></pre></td></tr></table></figure>
-<p>hexo deploy命令执行成功后，浏览器中打开网址<a href="http://xxx.github.io（将xxx换成你的用户名）能看到和打开http://localhost:4000时一样的页面。" target="_blank" rel="noopener">http://xxx.github.io（将xxx换成你的用户名）能看到和打开http://localhost:4000时一样的页面。</a>　</p>
-<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><ul>
-<li><a href="https://github.com/hexojs/hexo" target="_blank" rel="noopener">https://github.com/hexojs/hexo</a></li>
-<li><a href="https://hexo.io/zh-cn/docs" target="_blank" rel="noopener">https://hexo.io/zh-cn/docs</a></li>
-<li><a href="https://www.cnblogs.com/MuYunyun/p/5927491.html" target="_blank" rel="noopener">https://www.cnblogs.com/MuYunyun/p/5927491.html</a></li>
-<li><a href="https://blog.csdn.net/xuezhisdc/article/details/53130383" target="_blank" rel="noopener">https://blog.csdn.net/xuezhisdc/article/details/53130383</a></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -1085,7 +1075,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-count">16</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -1098,7 +1088,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-count">10</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
